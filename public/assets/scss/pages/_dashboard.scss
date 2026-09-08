@@ -1,0 +1,395 @@
+/*--------------------------------------------------------------
+# Dashboard - Bento Grid Layout
+# Unique shadcn-inspired dashboard with modern bento box design
+--------------------------------------------------------------*/
+
+/* Bento Grid Container */
+.bento-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--spacing-lg);
+  margin-bottom: var(--spacing-xl);
+}
+
+/* Base Bento Card */
+.bento-card {
+  min-height: 160px;
+}
+
+/* Bento Card Sizes */
+.bento-large {
+  grid-column: span 2;
+  grid-row: span 1;
+}
+
+.bento-wide {
+  grid-column: span 2;
+}
+
+.bento-tall {
+  grid-row: span 2;
+}
+
+.bento-full {
+  grid-column: span 3;
+}
+
+/* Bento Icons */
+.bento-icon {
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-md);
+  font-size: 1.125rem;
+  flex-shrink: 0;
+}
+
+.bento-icon-lg {
+  width: 56px;
+  height: 56px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-lg);
+  font-size: 1.5rem;
+  flex-shrink: 0;
+}
+
+/* Product Thumbnail */
+.product-thumb {
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-md);
+  font-size: 1rem;
+  flex-shrink: 0;
+}
+
+/* Team Activity Widget */
+.team-activity {
+  display: flex;
+  align-items: center;
+  gap: -8px;
+}
+
+.team-member {
+  position: relative;
+  margin-left: -8px;
+}
+
+.team-member:first-child {
+  margin-left: 0;
+}
+
+.team-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius-full);
+  border: 2px solid var(--surface-color);
+  object-fit: cover;
+}
+
+.team-status {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  width: 12px;
+  height: 12px;
+  border-radius: var(--radius-full);
+  border: 2px solid var(--surface-color);
+}
+
+.team-status.online {
+  background: var(--success-color);
+}
+
+.team-status.away {
+  background: var(--warning-color);
+}
+
+.team-status.offline {
+  background: var(--muted-color);
+}
+
+.team-more {
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--background-color);
+  border-radius: var(--radius-full);
+  border: 2px solid var(--surface-color);
+  margin-left: -8px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--muted-color);
+}
+
+/* Goal Widget - Redesigned */
+.goal-widget {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-lg);
+}
+
+.goal-chart-wrapper {
+  flex-shrink: 0;
+  width: 100px;
+  height: 100px;
+}
+
+.goal-stats {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+}
+
+.goal-stat-item {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+}
+
+.goal-stat-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: var(--radius-full);
+  flex-shrink: 0;
+}
+
+.goal-stat-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.goal-stat-label {
+  font-size: 0.75rem;
+  color: var(--muted-color);
+}
+
+.goal-stat-value {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--heading-color);
+}
+
+.goal-stat-value .text-muted {
+  font-weight: 400;
+  color: var(--muted-color);
+}
+
+/* Task Summary Widget - Redesigned */
+.task-summary {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+}
+
+.task-count {
+  display: flex;
+  align-items: baseline;
+  gap: var(--spacing-sm);
+}
+
+.task-number {
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: var(--heading-color);
+  line-height: 1;
+}
+
+.task-label {
+  font-size: 0.875rem;
+  color: var(--muted-color);
+}
+
+.task-breakdown {
+  display: flex;
+  gap: var(--spacing-md);
+}
+
+.task-type {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: var(--spacing-xs) var(--spacing-sm);
+  border-radius: var(--radius-md);
+  background: var(--background-color);
+}
+
+.task-type i {
+  font-size: 0.875rem;
+}
+
+.task-type-count {
+  font-weight: 600;
+  font-size: 0.875rem;
+}
+
+.task-type-label {
+  font-size: 0.75rem;
+  color: var(--muted-color);
+}
+
+.task-type.urgent {
+  color: var(--danger-color);
+}
+
+.task-type.urgent i {
+  color: var(--danger-color);
+}
+
+.task-type.medium {
+  color: var(--warning-color);
+}
+
+.task-type.medium i {
+  color: var(--warning-color);
+}
+
+.task-type.low {
+  color: var(--info-color);
+}
+
+.task-type.low i {
+  color: var(--info-color);
+}
+
+/* Soft Button Variants for Dashboard */
+.btn-soft-primary {
+  background: color-mix(in srgb, var(--accent-color), transparent 90%);
+  color: var(--accent-color);
+  border: none;
+}
+
+.btn-soft-primary:hover {
+  background: var(--accent-color);
+  color: var(--contrast-color);
+}
+
+.btn-soft-secondary {
+  background: var(--background-color);
+  color: var(--default-color);
+  border: 1px solid var(--border-color);
+}
+
+.btn-soft-secondary:hover {
+  background: var(--surface-color);
+  border-color: var(--border-color-dark);
+}
+
+/* Quick Actions Bar */
+.quick-actions-bar {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  padding: var(--spacing-md);
+  background: var(--surface-color);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-sm);
+  overflow-x: auto;
+}
+
+.quick-action-btn {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  padding: var(--spacing-sm) var(--spacing-md);
+  background: var(--background-color);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  color: var(--default-color);
+  font-size: 0.8125rem;
+  font-weight: 500;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.quick-action-btn:hover {
+  background: var(--accent-color);
+  border-color: var(--accent-color);
+  color: white;
+}
+
+.quick-action-btn i {
+  font-size: 1rem;
+}
+
+/* Mini Chart Container */
+.mini-chart {
+  height: 40px;
+}
+
+/* Responsive Bento Grid */
+@media (max-width: 1199px) {
+  .bento-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .bento-large,
+  .bento-wide {
+    grid-column: span 2;
+  }
+
+  .bento-full {
+    grid-column: span 2;
+  }
+}
+
+@media (max-width: 767px) {
+  .bento-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .bento-large,
+  .bento-wide,
+  .bento-full {
+    grid-column: span 1;
+  }
+
+  .bento-tall {
+    grid-row: span 1;
+  }
+
+  .quick-actions-bar {
+    flex-wrap: nowrap;
+    -webkit-overflow-scrolling: touch;
+  }
+}
+
+/* Dark Mode Overrides */
+[data-theme="dark"] .quick-actions-bar {
+  box-shadow: none;
+}
+
+[data-theme="dark"] .quick-action-btn {
+  background: var(--background-color);
+  border-color: var(--border-color);
+}
+
+[data-theme="dark"] .team-avatar,
+[data-theme="dark"] .team-more,
+[data-theme="dark"] .team-status {
+  border-color: var(--surface-color);
+}
+
+[data-theme="dark"] .task-type {
+  background: var(--background-color);
+}
+
+[data-theme="dark"] .btn-soft-primary {
+  background: color-mix(in srgb, var(--accent-color), transparent 85%);
+}
+
+[data-theme="dark"] .btn-soft-secondary {
+  background: var(--background-color);
+}

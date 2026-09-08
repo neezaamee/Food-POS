@@ -1,0 +1,171 @@
+// FAQ Page Styles
+
+// FAQ Search
+#faqSearch {
+  border-left: none;
+
+  &:focus {
+    box-shadow: none;
+    border-color: var(--border-color);
+  }
+}
+
+// Category Navigation
+.faq-categories {
+  .list-group-item {
+    border: none;
+    padding: 0.875rem 1.25rem;
+    color: var(--default-color);
+    transition: all 0.15s ease;
+
+    i {
+      color: var(--muted-color);
+      transition: color 0.15s ease;
+    }
+
+    .badge {
+      font-size: 0.7rem;
+      font-weight: 500;
+    }
+
+    &:hover {
+      background-color: var(--background-color);
+      color: var(--accent-color);
+
+      i {
+        color: var(--accent-color);
+      }
+    }
+
+    &.active {
+      background-color: color-mix(in srgb, var(--accent-color), transparent 92%);
+      color: var(--accent-color);
+      font-weight: 500;
+
+      i {
+        color: var(--accent-color);
+      }
+
+      .badge {
+        background-color: var(--accent-color) !important;
+        color: var(--contrast-color);
+      }
+    }
+  }
+}
+
+// FAQ Accordion
+.faq-accordion {
+  .accordion-item {
+    border: none;
+    border-bottom: 1px solid var(--border-color);
+
+    &:last-child {
+      border-bottom: none;
+    }
+  }
+
+  .accordion-button {
+    padding: 1rem 0;
+    font-weight: 500;
+    font-size: 0.9375rem;
+    background: transparent;
+    box-shadow: none;
+    color: var(--heading-color);
+
+    &:not(.collapsed) {
+      color: var(--accent-color);
+      background: transparent;
+    }
+
+    &:focus {
+      box-shadow: none;
+    }
+
+    &::after {
+      width: 1rem;
+      height: 1rem;
+      background-size: 1rem;
+    }
+
+    &:hover {
+      color: var(--accent-color);
+    }
+  }
+
+  .accordion-body {
+    padding: 0 0 1rem 0;
+    line-height: 1.7;
+  }
+}
+
+// Avatar Icon (for resources section)
+.avatar-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: var(--radius-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.25rem;
+}
+
+// Popular tags
+.badge.bg-light {
+  border: 1px solid var(--border-color);
+  transition: all 0.15s ease;
+
+  &:hover {
+    background-color: var(--accent-color) !important;
+    color: var(--contrast-color) !important;
+    border-color: var(--accent-color);
+  }
+}
+
+// Smooth scroll offset for category anchors
+#general,
+#account,
+#billing,
+#features,
+#security,
+#technical {
+  scroll-margin-top: 100px;
+}
+
+// Support Card
+.card-body .display-4 {
+  font-size: 2.5rem;
+}
+
+// Responsive
+@media (max-width: 991px) {
+  .faq-categories {
+    display: flex;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    margin: 0 -1rem;
+    padding: 0 1rem;
+
+    .list-group-item {
+      white-space: nowrap;
+      border-radius: var(--radius-md) !important;
+      margin-right: 0.5rem;
+
+      .badge {
+        display: none;
+      }
+    }
+  }
+}
+
+@media (max-width: 767px) {
+  .faq-accordion .accordion-button {
+    font-size: 0.875rem;
+  }
+
+  .avatar-icon {
+    width: 40px;
+    height: 40px;
+    font-size: 1rem;
+  }
+}

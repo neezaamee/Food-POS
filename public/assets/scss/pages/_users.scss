@@ -1,0 +1,154 @@
+// Users Page Styles
+
+// User table specific styles
+.table {
+  // User row hover highlighting
+  tbody tr {
+    transition: background-color 0.15s ease;
+  }
+
+  // Checkbox column alignment
+  .form-check {
+    margin: 0;
+    min-height: auto;
+  }
+}
+
+// User avatar and info in table
+.user-info {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.user-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.user-details {
+  min-width: 0;
+}
+
+.user-name {
+  font-weight: 600;
+  color: var(--heading-color);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.user-email {
+  font-size: 0.8125rem;
+  color: var(--muted-color);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+// Role badges
+.role-badge {
+  font-size: 0.75rem;
+  font-weight: 500;
+  padding: 0.25rem 0.625rem;
+  border-radius: 0.25rem;
+
+  &.admin {
+    background-color: var(--danger-color-light);
+    color: var(--danger-color);
+  }
+
+  &.manager {
+    background-color: var(--warning-color-light);
+    color: var(--warning-color);
+  }
+
+  &.user {
+    background-color: var(--info-color-light);
+    color: var(--info-color);
+  }
+}
+
+// Status badges
+.status-badge {
+  font-size: 0.75rem;
+  font-weight: 500;
+  padding: 0.25rem 0.5rem;
+  border-radius: 0.25rem;
+
+  &.active {
+    background-color: var(--success-color);
+    color: white;
+  }
+
+  &.inactive {
+    background-color: var(--muted-color);
+    color: white;
+  }
+
+  &.pending {
+    background-color: var(--warning-color);
+    color: white;
+  }
+}
+
+// Actions dropdown
+.actions-dropdown {
+  .btn-link {
+    color: var(--muted-color);
+    padding: 0.25rem 0.5rem;
+
+    &:hover {
+      color: var(--default-color);
+    }
+  }
+}
+
+// Bulk actions bar (for when items are selected)
+.bulk-actions {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.75rem 1rem;
+  background-color: color-mix(in srgb, var(--accent-color), transparent 95%);
+  border-bottom: 1px solid var(--border-color);
+
+  .selected-count {
+    font-weight: 500;
+    color: var(--accent-color);
+  }
+}
+
+// Activity Feed (for user view page)
+.activity-feed {
+  position: relative;
+}
+
+.activity-feed-item {
+  display: flex;
+  gap: 1rem;
+  padding: 1rem 0;
+  border-bottom: 1px solid var(--border-color);
+
+  &:last-child {
+    border-bottom: none;
+  }
+}
+
+.activity-feed-icon {
+  flex-shrink: 0;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.875rem;
+}
+
+.activity-feed-content {
+  flex: 1;
+  min-width: 0;
+}

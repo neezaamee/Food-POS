@@ -1,0 +1,15 @@
+{
+  "name": "Food Point POS Terminal",
+  "short_name": "FoodPoint POS",
+  "start_url": "/pos",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#0d6efd",
+  "icons": [
+    {
+      "src": "/assets/img/favicon.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    }
+  ]
+}

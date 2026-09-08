@@ -1,0 +1,272 @@
+/*--------------------------------------------------------------
+# Dark Mode Specific Styles
+# Muted shadcn-inspired dark theme with border-only floating elements
+--------------------------------------------------------------*/
+
+/* Dark mode is primarily handled through CSS custom properties in _variables.scss
+   This file contains any additional dark mode specific overrides */
+
+[data-theme="dark"] {
+  color-scheme: dark;
+}
+
+/*--------------------------------------------------------------
+# Floating Elements - Border Only (No Shadows)
+--------------------------------------------------------------*/
+
+/* Sidebar - border only, no shadow */
+[data-theme="dark"] .sidebar {
+  box-shadow: none;
+  border-color: var(--sidebar-border);
+}
+
+/* Header - border only, no shadow */
+[data-theme="dark"] .header {
+  box-shadow: none;
+  border-color: var(--header-border);
+}
+
+/* Footer - border only, no shadow */
+[data-theme="dark"] .footer {
+  box-shadow: none;
+  border-color: var(--border-color);
+}
+
+/* Dropdowns - subtle shadow for depth */
+[data-theme="dark"] .dropdown-menu {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  border-color: var(--border-color);
+}
+
+/* Images in dark mode - slight reduction in brightness (exclude logos) */
+[data-theme="dark"] img:not([src*=".svg"]):not(.sidebar-logo img):not(.header-logo img) {
+  filter: brightness(0.95);
+}
+
+/* Logo inversion for dark mode - make dark logos white */
+[data-theme="dark"] .sidebar-logo img,
+[data-theme="dark"] .header-logo img {
+  filter: brightness(0) invert(1);
+}
+
+/* Code blocks */
+[data-theme="dark"] code {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+[data-theme="dark"] pre {
+  background-color: var(--surface-color);
+  border-color: var(--border-color);
+}
+
+/* Form elements - ensure proper styling */
+[data-theme="dark"] input:-webkit-autofill,
+[data-theme="dark"] input:-webkit-autofill:hover,
+[data-theme="dark"] input:-webkit-autofill:focus,
+[data-theme="dark"] textarea:-webkit-autofill,
+[data-theme="dark"] textarea:-webkit-autofill:hover,
+[data-theme="dark"] textarea:-webkit-autofill:focus,
+[data-theme="dark"] select:-webkit-autofill,
+[data-theme="dark"] select:-webkit-autofill:hover,
+[data-theme="dark"] select:-webkit-autofill:focus {
+  -webkit-text-fill-color: var(--default-color);
+  -webkit-box-shadow: 0 0 0px 1000px var(--input-bg) inset;
+  transition: background-color 5000s ease-in-out 0s;
+}
+
+/* Select dropdown arrow in dark mode */
+[data-theme="dark"] .form-select {
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%2394a3b8' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='m2 5 6 6 6-6'/%3e%3c/svg%3e");
+}
+
+/* Checkbox/Radio in dark mode */
+[data-theme="dark"] .form-check-input {
+  background-color: var(--input-bg);
+  border-color: var(--border-color);
+}
+
+/* Switch in dark mode */
+[data-theme="dark"] .form-switch .form-check-input {
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='-4 -4 8 8'%3e%3ccircle r='3' fill='%2394a3b8'/%3e%3c/svg%3e");
+}
+
+/* Scrollbar in dark mode */
+[data-theme="dark"] ::-webkit-scrollbar-track {
+  background: var(--background-color);
+}
+
+[data-theme="dark"] ::-webkit-scrollbar-thumb {
+  background: var(--border-color);
+}
+
+[data-theme="dark"] ::-webkit-scrollbar-thumb:hover {
+  background: var(--muted-color);
+}
+
+/* HR in dark mode */
+[data-theme="dark"] hr {
+  border-color: var(--border-color);
+}
+
+/* Placeholder text */
+[data-theme="dark"] ::placeholder {
+  color: var(--light-color);
+  opacity: 1;
+}
+
+/* Selection in dark mode */
+[data-theme="dark"] ::selection {
+  background-color: var(--accent-color);
+  color: white;
+}
+
+/* Disabled elements */
+[data-theme="dark"] .form-control:disabled,
+[data-theme="dark"] .form-select:disabled,
+[data-theme="dark"] .btn:disabled {
+  background-color: var(--background-color);
+  opacity: 0.5;
+}
+
+/* Focus ring in dark mode */
+[data-theme="dark"] :focus-visible {
+  outline-color: var(--accent-color);
+}
+
+/* Tables striped in dark mode */
+[data-theme="dark"] .table-striped > tbody > tr:nth-of-type(odd) > * {
+  background-color: rgba(255, 255, 255, 0.02);
+}
+
+/*--------------------------------------------------------------
+# Cards & Widgets - Border Only (shadcn style)
+--------------------------------------------------------------*/
+
+/* Cards - border only, no shadow for cleaner look */
+[data-theme="dark"] .card,
+[data-theme="dark"] .widget {
+  box-shadow: none;
+  border-color: var(--border-color);
+}
+
+/* Card hover - subtle lift if needed */
+[data-theme="dark"] .card-hover:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+/* Modal backdrop in dark mode */
+[data-theme="dark"] .modal-backdrop {
+  background-color: rgba(0, 0, 0, 0.7);
+}
+
+/* Modal content - border only */
+[data-theme="dark"] .modal-content {
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.4);
+  border-color: var(--border-color);
+}
+
+/* Chart specific dark mode */
+[data-theme="dark"] .apexcharts-tooltip,
+[data-theme="dark"] .apexcharts-xaxistooltip,
+[data-theme="dark"] .apexcharts-yaxistooltip {
+  background: var(--surface-color) !important;
+  border-color: var(--border-color) !important;
+  color: var(--default-color) !important;
+}
+
+[data-theme="dark"] .apexcharts-tooltip-title {
+  background: var(--background-color) !important;
+  border-color: var(--border-color) !important;
+}
+
+/*--------------------------------------------------------------
+# Buttons in Dark Mode
+--------------------------------------------------------------*/
+
+/* Outline buttons - muted look */
+[data-theme="dark"] .btn-outline-secondary {
+  border-color: var(--border-color);
+  color: var(--default-color);
+}
+
+[data-theme="dark"] .btn-outline-secondary:hover {
+  background-color: var(--surface-color);
+  border-color: var(--border-color-dark);
+}
+
+/* Light button - slightly visible in dark */
+[data-theme="dark"] .btn-light {
+  background-color: var(--surface-color);
+  border-color: var(--border-color);
+  color: var(--default-color);
+}
+
+[data-theme="dark"] .btn-light:hover {
+  background-color: var(--background-color);
+}
+
+/*--------------------------------------------------------------
+# Input Focus Rings - Muted
+--------------------------------------------------------------*/
+
+[data-theme="dark"] .form-control:focus,
+[data-theme="dark"] .form-select:focus {
+  box-shadow: 0 0 0 2px var(--input-focus-ring);
+}
+
+/*--------------------------------------------------------------
+# Alert borders in dark mode
+--------------------------------------------------------------*/
+
+[data-theme="dark"] .alert {
+  border-width: 1px;
+}
+
+/*--------------------------------------------------------------
+# Header Dropdowns - shadcn dark style
+--------------------------------------------------------------*/
+
+/* Notification dropdown */
+[data-theme="dark"] .notification-dropdown .dropdown-menu {
+  box-shadow: 0 10px 38px -10px rgba(0, 0, 0, 0.7), 0 10px 20px -15px rgba(0, 0, 0, 0.5);
+}
+
+[data-theme="dark"] .notification-header {
+  background: var(--background-color);
+}
+
+[data-theme="dark"] .notification-footer {
+  background: var(--background-color);
+}
+
+/* User dropdown */
+[data-theme="dark"] .user-dropdown .dropdown-menu {
+  box-shadow: 0 10px 38px -10px rgba(0, 0, 0, 0.7), 0 10px 20px -15px rgba(0, 0, 0, 0.5);
+}
+
+[data-theme="dark"] .user-dropdown .avatar {
+  border-color: var(--border-color);
+}
+
+[data-theme="dark"] .user-dropdown .dropdown-toggle:hover .avatar {
+  border-color: var(--border-color-dark);
+}
+
+[data-theme="dark"] .user-dropdown .dropdown-header .user-avatar {
+  border-color: var(--border-color);
+}
+
+[data-theme="dark"] .user-dropdown .dropdown-item .shortcut {
+  background: var(--background-color);
+  border-color: var(--border-color);
+}
+
+/*--------------------------------------------------------------
+# Sidebar tooltip in dark mode
+--------------------------------------------------------------*/
+
+[data-theme="dark"] .sidebar-nav .nav-link::after {
+  background-color: var(--surface-color);
+  border-color: var(--border-color);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}

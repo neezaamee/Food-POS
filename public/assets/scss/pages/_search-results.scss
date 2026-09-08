@@ -1,0 +1,185 @@
+// Search Results Page Styles
+
+// Search Result Item
+.search-result-item {
+  display: flex;
+  gap: 1rem;
+  padding: 1rem;
+  margin-bottom: 0.75rem;
+  background: var(--surface-color);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  transition: all 0.2s ease;
+
+  &:hover {
+    border-color: var(--accent-color);
+    box-shadow: var(--shadow-sm);
+  }
+
+  &:last-child {
+    margin-bottom: 0;
+  }
+}
+
+// Search Result Icon
+.search-result-icon {
+  flex-shrink: 0;
+  width: 48px;
+  height: 48px;
+  border-radius: var(--radius-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.25rem;
+}
+
+// Search Result Avatar
+.search-result-avatar {
+  flex-shrink: 0;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+// Search Result Content
+.search-result-content {
+  flex: 1;
+  min-width: 0;
+}
+
+// Search Result Title
+.search-result-title {
+  margin: 0 0 0.25rem;
+  font-size: 1rem;
+  font-weight: 600;
+
+  a {
+    color: var(--heading-color);
+    transition: color 0.15s ease;
+
+    &:hover {
+      color: var(--accent-color);
+    }
+  }
+}
+
+// Search Result Excerpt
+.search-result-excerpt {
+  margin: 0 0 0.5rem;
+  font-size: 0.875rem;
+  color: var(--muted-color);
+  line-height: 1.6;
+
+  // Limit to 2 lines
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+// Search Result Meta
+.search-result-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  font-size: 0.8125rem;
+  color: var(--muted-color);
+
+  span {
+    display: inline-flex;
+    align-items: center;
+
+    i {
+      font-size: 0.875rem;
+    }
+  }
+}
+
+// Highlighted text
+mark {
+  background-color: color-mix(in srgb, var(--warning-color), transparent 70%);
+  color: inherit;
+  padding: 0 0.125rem;
+  border-radius: 2px;
+}
+
+// Recent searches badges
+.badge.bg-light {
+  transition: all 0.15s ease;
+
+  &:hover {
+    background-color: var(--accent-color) !important;
+    color: var(--contrast-color) !important;
+  }
+}
+
+// Result tabs
+.nav-tabs {
+  .nav-link {
+    color: var(--muted-color);
+    border: none;
+    padding: 0.75rem 1rem;
+
+    &:hover {
+      color: var(--default-color);
+      border-color: transparent;
+    }
+
+    &.active {
+      color: var(--accent-color);
+      background: transparent;
+      border-bottom: 2px solid var(--accent-color);
+    }
+
+    .badge {
+      font-size: 0.7rem;
+      vertical-align: middle;
+    }
+  }
+}
+
+// Filter card checkboxes
+.form-check {
+  margin-bottom: 0.5rem;
+
+  &:last-child {
+    margin-bottom: 0;
+  }
+}
+
+// Search Tips
+.card-body ul li {
+  line-height: 1.5;
+}
+
+// Responsive
+@media (max-width: 767px) {
+  .search-result-item {
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .search-result-icon,
+  .search-result-avatar {
+    width: 40px;
+    height: 40px;
+    font-size: 1rem;
+  }
+
+  .search-result-meta {
+    flex-direction: column;
+    gap: 0.25rem;
+  }
+
+  .nav-tabs {
+    overflow-x: auto;
+    flex-wrap: nowrap;
+
+    .nav-link {
+      white-space: nowrap;
+      padding: 0.5rem 0.75rem;
+      font-size: 0.875rem;
+    }
+  }
+}

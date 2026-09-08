@@ -1,0 +1,559 @@
+/*--------------------------------------------------------------
+# Sidebar - Floating Card Style with Slim Rail Collapse
+--------------------------------------------------------------*/
+
+.sidebar {
+  position: fixed;
+  top: var(--floating-gap);
+  left: var(--floating-gap);
+  bottom: var(--floating-gap);
+  width: var(--sidebar-width);
+  background: var(--sidebar-bg);
+  border: 1px solid var(--sidebar-border);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--sidebar-shadow);
+  z-index: 1001;
+  display: flex;
+  flex-direction: column;
+  transition: width var(--transition-base), transform var(--transition-base), box-shadow var(--transition-base);
+  overflow: hidden;
+}
+
+/* Mobile: Full overlay drawer (no floating, edge-to-edge) */
+@media (max-width: 1199px) {
+  .sidebar {
+    top: 0;
+    left: 0;
+    bottom: 0;
+    border-radius: 0;
+    box-shadow: var(--shadow-xl);
+    transform: translateX(-100%);
+  }
+
+  .sidebar-open .sidebar {
+    transform: translateX(0);
+  }
+}
+
+/* Desktop: Slim rail collapsed state (~50px) */
+@media (min-width: 1200px) {
+  .sidebar-collapsed .sidebar {
+    width: var(--sidebar-collapsed-width);
+    overflow: visible;
+  }
+
+  .sidebar-collapsed .sidebar-nav {
+    overflow: visible;
+  }
+
+  /* Hover to expand full sidebar on desktop */
+  .sidebar-collapsed .sidebar:hover {
+    width: var(--sidebar-width);
+    box-shadow: var(--shadow-xl);
+  }
+
+  /* Show hidden elements on hover-expand */
+  .sidebar-collapsed .sidebar:hover .nav-item > .nav-link > span,
+  .sidebar-collapsed .sidebar:hover .nav-arrow,
+  .sidebar-collapsed .sidebar:hover .nav-badge,
+  .sidebar-collapsed .sidebar:hover .nav-heading span,
+  .sidebar-collapsed .sidebar:hover .sidebar-logo-text,
+  .sidebar-collapsed .sidebar:hover .sidebar-logo > span {
+    display: flex;
+    opacity: 1;
+    width: auto;
+  }
+
+  .sidebar-collapsed .sidebar:hover .nav-item > .nav-link {
+    justify-content: flex-start;
+    padding: 10px 12px;
+  }
+
+  .sidebar-collapsed .sidebar:hover .nav-item > .nav-link > i:first-child {
+    margin-right: 12px;
+    font-size: 1.25rem;
+  }
+
+  .sidebar-collapsed .sidebar:hover .nav-heading {
+    text-align: left;
+    padding: var(--spacing-lg) var(--spacing-md) var(--spacing-xs);
+  }
+
+  .sidebar-collapsed .sidebar:hover .nav-heading::before {
+    display: none;
+  }
+
+  .sidebar-collapsed .sidebar:hover .sidebar-header {
+    justify-content: space-between;
+    padding: 0 var(--spacing-lg);
+  }
+}
+
+/*--------------------------------------------------------------
+# Sidebar Header
+--------------------------------------------------------------*/
+
+.sidebar-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: var(--header-height);
+  padding: 0 var(--spacing-lg);
+  border-bottom: 1px solid var(--sidebar-border);
+  flex-shrink: 0;
+}
+
+.sidebar-collapsed .sidebar-header {
+  justify-content: center;
+  padding: 0 var(--spacing-sm);
+}
+
+.sidebar-collapsed .sidebar-logo {
+  justify-content: center;
+  gap: 0;
+}
+
+.sidebar-logo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  text-decoration: none;
+}
+
+.sidebar-logo:hover {
+  text-decoration: none;
+}
+
+.sidebar-logo img {
+  height: 36px;
+  max-width: 38px;
+  flex-shrink: 0;
+  object-fit: contain;
+  border-radius: var(--radius-sm);
+  transition: filter var(--transition-base);
+}
+
+.sidebar-logo-text {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.25;
+  transition: opacity var(--transition-fast), width var(--transition-fast);
+}
+
+.sidebar-logo-name {
+  font-size: 1.0625rem;
+  font-weight: 600;
+  color: var(--heading-color);
+  letter-spacing: -0.01em;
+}
+
+.sidebar-logo-tagline {
+  font-size: 0.75rem;
+  color: var(--muted-color);
+  font-weight: 400;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.sidebar-collapsed .sidebar-logo-text {
+  opacity: 0;
+  width: 0;
+  overflow: hidden;
+}
+
+/* Legacy support for span-based logo */
+.sidebar-logo > span:not(.sidebar-logo-text):not(.sidebar-logo-name):not(.sidebar-logo-tagline) {
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: var(--heading-color);
+  letter-spacing: -0.01em;
+  transition: opacity var(--transition-fast), width var(--transition-fast);
+}
+
+.sidebar-collapsed .sidebar-logo > span:not(.sidebar-logo-text):not(.sidebar-logo-name):not(.sidebar-logo-tagline) {
+  opacity: 0;
+  width: 0;
+  overflow: hidden;
+}
+
+.sidebar-close {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-md);
+  color: var(--muted-color);
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+.sidebar-close:hover {
+  background-color: var(--sidebar-hover-bg);
+  color: var(--default-color);
+}
+
+@media (min-width: 1200px) {
+  .sidebar-close {
+    display: none;
+  }
+}
+
+/*--------------------------------------------------------------
+# Sidebar Navigation
+--------------------------------------------------------------*/
+
+.sidebar-nav {
+  flex: 1;
+  padding: var(--spacing-md) var(--spacing-sm);
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+/* Scrollbar styling */
+.sidebar-nav::-webkit-scrollbar {
+  width: 4px;
+}
+
+.sidebar-nav::-webkit-scrollbar-thumb {
+  background: var(--border-color);
+  border-radius: 4px;
+}
+
+.sidebar-nav::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+/* Nav Menu - Reset list styles */
+.sidebar .nav-menu,
+.sidebar .nav-submenu {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.sidebar .nav-menu {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+/*--------------------------------------------------------------
+# Nav Heading (Section Title)
+--------------------------------------------------------------*/
+
+.sidebar .nav-heading {
+  padding: var(--spacing-lg) var(--spacing-md) var(--spacing-xs);
+  font-size: 0.6875rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--sidebar-muted-color);
+  white-space: nowrap;
+  overflow: hidden;
+}
+
+.sidebar-collapsed .sidebar .nav-heading {
+  text-align: center;
+  padding: var(--spacing-lg) var(--spacing-xs) var(--spacing-xs);
+}
+
+.sidebar-collapsed .sidebar .nav-heading span {
+  display: none;
+}
+
+.sidebar-collapsed .sidebar .nav-heading::before {
+  content: "•";
+  font-size: 1rem;
+}
+
+/*--------------------------------------------------------------
+# Nav Item & Nav Link
+--------------------------------------------------------------*/
+
+.sidebar .nav-item {
+  position: relative;
+}
+
+/* Main nav link style */
+.sidebar .nav-item > .nav-link {
+  display: flex;
+  align-items: center;
+  padding: 10px 12px;
+  border-radius: var(--radius-md);
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--sidebar-color);
+  text-decoration: none;
+  transition: background-color var(--transition-fast), color var(--transition-fast);
+}
+
+.sidebar .nav-item > .nav-link:hover {
+  background-color: var(--sidebar-hover-bg);
+  color: var(--sidebar-color);
+}
+
+/* Icon in nav link */
+.sidebar .nav-item > .nav-link > i:first-child {
+  width: 22px;
+  margin-right: 12px;
+  font-size: 1.25rem;
+  text-align: center;
+  flex-shrink: 0;
+}
+
+/* Text in nav link */
+.sidebar .nav-item > .nav-link > span {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Arrow icon for submenus - positioned at the right */
+.sidebar .nav-arrow {
+  font-size: 0.625rem;
+  margin-left: auto;
+  transition: transform var(--transition-fast);
+  opacity: 0.7;
+}
+
+.sidebar .nav-link[aria-expanded="true"] > .nav-arrow,
+.sidebar .has-submenu.open > .nav-link > .nav-arrow {
+  transform: rotate(180deg);
+}
+
+/* Active State */
+.sidebar .nav-item > .nav-link.active,
+.sidebar .nav-item.has-submenu.open > .nav-link {
+  background-color: var(--sidebar-active-bg);
+  color: var(--sidebar-active-color);
+}
+
+/* Badge in nav */
+.sidebar .nav-badge {
+  padding: 2px 8px;
+  font-size: 0.625rem;
+  font-weight: 600;
+  border-radius: var(--radius-full);
+  background: var(--accent-color);
+  color: white;
+  flex-shrink: 0;
+  margin-left: auto;
+}
+
+/*--------------------------------------------------------------
+# Collapsed Sidebar State - Slim Rail
+--------------------------------------------------------------*/
+
+@media (min-width: 1200px) {
+  .sidebar-collapsed .sidebar .nav-item > .nav-link {
+    justify-content: center;
+    padding: 10px;
+    position: relative;
+  }
+
+  .sidebar-collapsed .sidebar .nav-item > .nav-link > i:first-child {
+    margin-right: 0;
+    font-size: 1.375rem;
+  }
+
+  .sidebar-collapsed .sidebar .nav-item > .nav-link > span,
+  .sidebar-collapsed .sidebar .nav-arrow,
+  .sidebar-collapsed .sidebar .nav-badge {
+    display: none;
+  }
+
+  /* Tooltip for collapsed state */
+  .sidebar-collapsed .sidebar:not(:hover) .nav-item > .nav-link[data-tooltip]::after {
+    content: attr(data-tooltip);
+    position: absolute;
+    left: calc(100% + 8px);
+    top: 50%;
+    transform: translateY(-50%);
+    padding: 6px 12px;
+    background: var(--heading-color);
+    color: var(--contrast-color);
+    font-size: 0.8125rem;
+    font-weight: 500;
+    border-radius: var(--radius-md);
+    white-space: nowrap;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity var(--transition-fast);
+    z-index: 1000;
+  }
+
+  .sidebar-collapsed .sidebar:not(:hover) .nav-item > .nav-link[data-tooltip]:hover::after {
+    opacity: 1;
+  }
+}
+
+/*--------------------------------------------------------------
+# Submenu (2nd Level)
+--------------------------------------------------------------*/
+
+.sidebar .nav-submenu {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height var(--transition-base);
+}
+
+/* Open state - via JS (.open on parent) or Jinja (.show on submenu) */
+.sidebar .has-submenu.open > .nav-submenu,
+.sidebar .nav-submenu.show {
+  max-height: none;
+  margin-top: 4px;
+}
+
+/* Submenu items */
+.sidebar .nav-submenu > li > .nav-link {
+  display: flex;
+  align-items: center;
+  padding: 7px 12px 7px 12px;
+  margin-left: 32px;
+  font-size: 0.8125rem;
+  font-weight: 400;
+  color: var(--sidebar-muted-color);
+  text-decoration: none;
+  border-radius: var(--radius-md);
+  position: relative;
+  transition: background-color var(--transition-fast), color var(--transition-fast);
+}
+
+/* Bullet indicator */
+.sidebar .nav-submenu > li > .nav-link::before {
+  content: "";
+  position: absolute;
+  left: -12px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 5px;
+  height: 5px;
+  background-color: var(--sidebar-border);
+  border-radius: var(--radius-full);
+  transition: background-color var(--transition-fast);
+}
+
+.sidebar .nav-submenu > li > .nav-link:hover {
+  color: var(--accent-color);
+}
+
+.sidebar .nav-submenu > li > .nav-link:hover::before {
+  background-color: var(--accent-color);
+}
+
+.sidebar .nav-submenu > li > .nav-link.active {
+  color: var(--accent-color);
+}
+
+.sidebar .nav-submenu > li > .nav-link.active::before {
+  background-color: var(--accent-color);
+}
+
+/*--------------------------------------------------------------
+# Nested Submenu (3rd Level)
+--------------------------------------------------------------*/
+
+/* 3rd level container inside 2nd level submenu */
+.sidebar .nav-submenu .has-submenu {
+  position: relative;
+}
+
+.sidebar .nav-submenu .has-submenu > .nav-link {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-right: 12px;
+}
+
+.sidebar .nav-submenu .has-submenu > .nav-link > .nav-arrow {
+  font-size: 0.75rem;
+  transition: transform var(--transition-fast);
+}
+
+.sidebar .nav-submenu .has-submenu.open > .nav-link > .nav-arrow {
+  transform: rotate(180deg);
+}
+
+/* 3rd level submenu - inherits max-height: 0 from .nav-submenu */
+.sidebar .nav-submenu .has-submenu.open > .nav-submenu {
+  margin-top: 4px;
+}
+
+.sidebar .nav-submenu .nav-submenu > li > .nav-link {
+  margin-left: 44px;
+}
+
+/*--------------------------------------------------------------
+# Collapsed Sidebar - Flyout Submenus
+--------------------------------------------------------------*/
+
+@media (min-width: 1200px) {
+  .sidebar-collapsed .sidebar:not(:hover) .nav-submenu {
+    display: none !important;
+    max-height: none !important;
+  }
+
+  /* Show submenu on hover for collapsed sidebar (non-expanded state) */
+  .sidebar-collapsed .sidebar:not(:hover) .nav-item.has-submenu:hover > .nav-submenu {
+    display: block !important;
+    position: absolute;
+    left: 100%;
+    top: 0;
+    min-width: 200px;
+    max-height: none !important;
+    padding: var(--spacing-sm);
+    margin: 0;
+    background: var(--sidebar-bg);
+    border: 1px solid var(--sidebar-border);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-lg);
+    z-index: 1000;
+  }
+
+  .sidebar-collapsed .sidebar:not(:hover) .nav-item.has-submenu:hover > .nav-submenu > li > .nav-link {
+    margin-left: 0;
+    padding-left: 24px;
+  }
+
+  .sidebar-collapsed .sidebar:not(:hover) .nav-item.has-submenu:hover > .nav-submenu > li > .nav-link::before {
+    left: 10px;
+  }
+}
+
+/*--------------------------------------------------------------
+# Sidebar Footer - REMOVED (actions moved to header)
+--------------------------------------------------------------*/
+
+.sidebar-footer {
+  display: none;
+}
+
+/*--------------------------------------------------------------
+# Sidebar Overlay (Mobile)
+--------------------------------------------------------------*/
+
+.sidebar-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 1000;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity var(--transition-base), visibility var(--transition-base);
+}
+
+.sidebar-open .sidebar-overlay {
+  opacity: 1;
+  visibility: visible;
+}
+
+@media (min-width: 1200px) {
+  .sidebar-overlay {
+    display: none;
+  }
+}

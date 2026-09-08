@@ -1,0 +1,142 @@
+// Roles & Permissions Page Styles
+
+// Roles List
+.roles-list {
+  // Empty base
+}
+
+.role-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem 1.25rem;
+  border-bottom: 1px solid var(--border-color);
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+
+  &:last-child {
+    border-bottom: none;
+  }
+
+  &:hover {
+    background-color: var(--background-color);
+  }
+
+  &.active {
+    background-color: color-mix(in srgb, var(--accent-color), transparent 95%);
+    border-left: 3px solid var(--accent-color);
+    padding-left: calc(1.25rem - 3px);
+
+    .role-name {
+      color: var(--accent-color);
+    }
+  }
+}
+
+.role-info {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.role-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 0.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.125rem;
+}
+
+.role-details {
+  min-width: 0;
+}
+
+.role-name {
+  font-weight: 600;
+  color: var(--heading-color);
+}
+
+.role-users {
+  font-size: 0.8125rem;
+  color: var(--muted-color);
+}
+
+.role-actions {
+  .btn-link {
+    color: var(--muted-color);
+    padding: 0.25rem 0.5rem;
+    opacity: 0;
+    transition: opacity 0.15s ease;
+
+    &:hover {
+      color: var(--accent-color);
+    }
+  }
+}
+
+.role-item:hover .role-actions .btn-link {
+  opacity: 1;
+}
+
+// Permissions Table
+.permissions-table {
+  th {
+    font-weight: 600;
+    font-size: 0.8125rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--muted-color);
+    border-bottom-width: 2px;
+  }
+
+  td {
+    vertical-align: middle;
+  }
+
+  .form-check-input {
+    cursor: pointer;
+    width: 1.125rem;
+    height: 1.125rem;
+
+    &:checked {
+      background-color: var(--accent-color);
+      border-color: var(--accent-color);
+    }
+  }
+
+  // Permission group headers
+  .permission-group td {
+    padding-top: 1rem;
+    padding-bottom: 0.75rem;
+    font-size: 0.875rem;
+    border-bottom: 1px solid var(--border-color);
+  }
+}
+
+// Permission badge
+.permission-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.25rem 0.5rem;
+  border-radius: 0.25rem;
+  font-size: 0.75rem;
+  font-weight: 500;
+
+  &.granted {
+    background-color: var(--success-color-light);
+    color: var(--success-color);
+  }
+
+  &.denied {
+    background-color: var(--danger-color-light);
+    color: var(--danger-color);
+  }
+
+  &.partial {
+    background-color: var(--warning-color-light);
+    color: var(--warning-color);
+  }
+}

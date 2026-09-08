@@ -1,0 +1,315 @@
+// Invoice Page Styles
+
+// Invoice Card
+.invoice-card {
+  .card-body {
+    @media print {
+      padding: 0 !important;
+    }
+  }
+}
+
+// Invoice Header
+.invoice-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding-bottom: 1.5rem;
+  margin-bottom: 1.5rem;
+  border-bottom: 1px solid var(--border-color);
+
+  @media (max-width: 575px) {
+    flex-direction: column;
+    gap: 1rem;
+  }
+}
+
+.invoice-logo {
+  display: flex;
+  align-items: center;
+
+  img {
+    height: 40px;
+    width: auto;
+  }
+}
+
+.invoice-title {
+  text-align: right;
+
+  @media (max-width: 575px) {
+    text-align: left;
+  }
+
+  h2 {
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: var(--heading-color);
+    margin: 0;
+    letter-spacing: 0.05em;
+  }
+}
+
+.invoice-number {
+  font-size: 0.875rem;
+  color: var(--muted-color);
+  font-family: var(--font-monospace, monospace);
+}
+
+// Invoice Info Section
+.invoice-info {
+  margin-bottom: 2rem;
+}
+
+// Invoice Items Table
+.invoice-items {
+  margin-bottom: 2rem;
+
+  .table {
+    margin-bottom: 0;
+
+    thead th {
+      background-color: var(--background-color);
+      border-bottom: 2px solid var(--border-color);
+      font-size: 0.75rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--muted-color);
+      padding: 0.75rem 1rem;
+    }
+
+    tbody td {
+      padding: 1rem;
+      vertical-align: middle;
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    tbody tr:last-child td {
+      border-bottom: none;
+    }
+  }
+}
+
+// Invoice Summary
+.invoice-summary {
+  margin-bottom: 2rem;
+
+  .table {
+    margin-bottom: 0;
+
+    td {
+      padding: 0.5rem 0;
+
+      &:first-child {
+        padding-right: 2rem;
+      }
+    }
+
+    .border-top td {
+      padding-top: 0.75rem;
+      border-top: 2px solid var(--border-color) !important;
+    }
+  }
+}
+
+// Invoice Notes
+.invoice-notes {
+  padding: 1rem;
+  background-color: var(--background-color);
+  border-radius: var(--radius-md);
+  margin-bottom: 2rem;
+}
+
+// Invoice Footer
+.invoice-footer {
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--border-color);
+
+  i {
+    font-size: 1.25rem;
+    display: block;
+    margin-bottom: 0.25rem;
+  }
+}
+
+// Invoice List Page Styles
+
+// Stats Cards for Invoice List
+.invoice-stats {
+  .card {
+    border: none;
+
+    .card-body {
+      padding: 1.25rem;
+    }
+  }
+
+  .stat-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: var(--radius-md);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.25rem;
+  }
+
+  .stat-value {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--heading-color);
+    line-height: 1.2;
+  }
+
+  .stat-label {
+    font-size: 0.8125rem;
+    color: var(--muted-color);
+  }
+
+  .stat-change {
+    font-size: 0.75rem;
+    font-weight: 500;
+  }
+}
+
+// Invoice Table
+.invoice-table {
+  .table {
+    margin-bottom: 0;
+
+    th {
+      font-weight: 600;
+      font-size: 0.8125rem;
+      text-transform: uppercase;
+      letter-spacing: 0.025em;
+      color: var(--muted-color);
+      border-bottom-width: 1px;
+    }
+
+    td {
+      vertical-align: middle;
+      padding: 1rem 0.75rem;
+    }
+  }
+
+  .invoice-id {
+    font-family: var(--font-monospace, monospace);
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--accent-color);
+
+    &:hover {
+      text-decoration: underline;
+    }
+  }
+
+  .client-info {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+  }
+
+  .client-avatar {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.875rem;
+    font-weight: 600;
+  }
+
+  .client-name {
+    font-weight: 500;
+    color: var(--heading-color);
+  }
+
+  .client-email {
+    font-size: 0.8125rem;
+    color: var(--muted-color);
+  }
+}
+
+// Invoice Status Badges
+.invoice-status {
+  font-size: 0.75rem;
+  font-weight: 500;
+  padding: 0.25rem 0.625rem;
+  border-radius: 0.25rem;
+
+  &.paid {
+    background-color: color-mix(in srgb, var(--success-color), transparent 85%);
+    color: var(--success-color);
+  }
+
+  &.pending {
+    background-color: color-mix(in srgb, var(--warning-color), transparent 85%);
+    color: var(--warning-color);
+  }
+
+  &.overdue {
+    background-color: color-mix(in srgb, var(--danger-color), transparent 85%);
+    color: var(--danger-color);
+  }
+
+  &.draft {
+    background-color: color-mix(in srgb, var(--muted-color), transparent 85%);
+    color: var(--muted-color);
+  }
+}
+
+// Create Invoice Modal
+.create-invoice-modal {
+  .modal-body {
+    padding: 1.5rem;
+  }
+
+  .invoice-items-container {
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    padding: 1rem;
+    margin-bottom: 1rem;
+  }
+
+  .invoice-item-row {
+    display: grid;
+    grid-template-columns: 1fr 80px 100px 100px auto;
+    gap: 0.75rem;
+    margin-bottom: 0.75rem;
+
+    @media (max-width: 767px) {
+      grid-template-columns: 1fr;
+    }
+
+    &:last-child {
+      margin-bottom: 0;
+    }
+  }
+}
+
+// Print Styles for Invoice
+@media print {
+  .invoice-card {
+    box-shadow: none !important;
+    border: none !important;
+  }
+
+  .invoice-header {
+    padding-bottom: 1rem;
+    margin-bottom: 1rem;
+  }
+
+  .invoice-items .table thead th {
+    background-color: #f8f9fa !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  .invoice-notes {
+    background-color: #f8f9fa !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+}

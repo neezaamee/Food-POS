@@ -1,0 +1,346 @@
+/*--------------------------------------------------------------
+# Error Pages (404, 500, 403, etc.)
+# Minimal typography-focused design
+--------------------------------------------------------------*/
+
+.error-page {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: var(--spacing-xl);
+  text-align: center;
+  background: var(--background-color);
+}
+
+.error-container {
+  max-width: 540px;
+}
+
+/* Error Code - Large gradient typography */
+.error-code {
+  font-size: 10rem;
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: -0.05em;
+  margin-bottom: var(--spacing-lg);
+
+  /* Gradient text effect */
+  background: linear-gradient(135deg, var(--accent-color) 0%, #7c3aed 50%, var(--accent-color) 100%);
+  background-size: 200% 200%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+
+  /* Subtle animation */
+  animation: gradientShift 8s ease infinite;
+}
+
+@keyframes gradientShift {
+  0%, 100% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+}
+
+/* Error Illustration - Hidden by default for minimal design */
+.error-illustration {
+  display: none;
+  max-width: 320px;
+  margin: 0 auto var(--spacing-xl);
+}
+
+/* Show illustration class if needed */
+.error-page.with-illustration .error-illustration {
+  display: block;
+}
+
+.error-illustration img {
+  width: 100%;
+  height: auto;
+}
+
+/* Error Icon - Smaller, subtle */
+.error-icon {
+  width: 64px;
+  height: 64px;
+  margin: 0 auto var(--spacing-lg);
+  border-radius: var(--radius-full);
+  background: color-mix(in srgb, var(--accent-color), transparent 92%);
+  color: var(--accent-color);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.75rem;
+}
+
+.error-icon.danger {
+  background: var(--danger-color-light);
+  color: var(--danger-color);
+}
+
+.error-icon.warning {
+  background: var(--warning-color-light);
+  color: var(--warning-color);
+}
+
+/* Error Title - Clean typography */
+.error-title {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: var(--heading-color);
+  margin-bottom: var(--spacing-sm);
+  letter-spacing: -0.01em;
+}
+
+/* Error Message - Refined */
+.error-message {
+  font-size: 1rem;
+  color: var(--muted-color);
+  margin-bottom: var(--spacing-xl);
+  line-height: 1.7;
+  max-width: 400px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* Error Actions */
+.error-actions {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-md);
+  flex-wrap: wrap;
+}
+
+.error-actions .btn {
+  min-width: 140px;
+}
+
+/* Maintenance Page */
+.maintenance-page {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: var(--spacing-xl);
+  text-align: center;
+  background: var(--background-color);
+}
+
+.maintenance-logo {
+  margin-bottom: var(--spacing-2xl);
+}
+
+.maintenance-logo img {
+  height: 48px;
+  width: auto;
+}
+
+.maintenance-icon {
+  width: 100px;
+  height: 100px;
+  margin: 0 auto var(--spacing-xl);
+  border-radius: var(--radius-full);
+  background: var(--warning-color-light);
+  color: var(--warning-color);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 3rem;
+}
+
+.maintenance-title {
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--heading-color);
+  margin-bottom: var(--spacing-md);
+}
+
+.maintenance-message {
+  font-size: 1rem;
+  color: var(--muted-color);
+  margin-bottom: var(--spacing-xl);
+  max-width: 480px;
+  line-height: 1.6;
+}
+
+/* Coming Soon Page */
+.coming-soon-page {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: var(--spacing-xl);
+  text-align: center;
+  background: var(--background-color);
+}
+
+.coming-soon-logo {
+  margin-bottom: var(--spacing-2xl);
+}
+
+.coming-soon-logo img {
+  height: 48px;
+  width: auto;
+}
+
+.coming-soon-title {
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: var(--heading-color);
+  margin-bottom: var(--spacing-md);
+}
+
+.coming-soon-message {
+  font-size: 1rem;
+  color: var(--muted-color);
+  margin-bottom: var(--spacing-xl);
+  max-width: 480px;
+  line-height: 1.6;
+}
+
+/* Countdown Timer */
+.countdown {
+  display: flex;
+  justify-content: center;
+  gap: var(--spacing-lg);
+  margin-bottom: var(--spacing-2xl);
+}
+
+.countdown-item {
+  text-align: center;
+}
+
+.countdown-value {
+  display: block;
+  width: 80px;
+  height: 80px;
+  line-height: 80px;
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--heading-color);
+  background: var(--surface-color);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  margin-bottom: var(--spacing-sm);
+}
+
+.countdown-label {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--muted-color);
+}
+
+/* Newsletter Form */
+.newsletter-form {
+  display: flex;
+  gap: var(--spacing-sm);
+  max-width: 400px;
+  margin: 0 auto;
+}
+
+.newsletter-form .form-control {
+  flex: 1;
+  height: 48px;
+  padding: 0 var(--spacing-md);
+  font-size: 0.9375rem;
+}
+
+.newsletter-form .btn {
+  height: 48px;
+  padding: 0 var(--spacing-xl);
+}
+
+/* Social Links */
+.social-links {
+  display: flex;
+  justify-content: center;
+  gap: var(--spacing-sm);
+  margin-top: var(--spacing-xl);
+}
+
+.social-link {
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-full);
+  background: var(--surface-color);
+  border: 1px solid var(--border-color);
+  color: var(--muted-color);
+  font-size: 1.125rem;
+  transition: all var(--transition-fast);
+}
+
+.social-link:hover {
+  background: var(--accent-color);
+  border-color: var(--accent-color);
+  color: white;
+}
+
+/* Responsive */
+@media (max-width: 767.98px) {
+  .error-code {
+    font-size: 7rem;
+  }
+}
+
+@media (max-width: 575.98px) {
+  .error-code {
+    font-size: 5rem;
+  }
+
+  .error-title,
+  .maintenance-title {
+    font-size: 1.25rem;
+  }
+
+  .coming-soon-title {
+    font-size: 1.5rem;
+  }
+
+  .countdown {
+    gap: var(--spacing-md);
+  }
+
+  .countdown-value {
+    width: 60px;
+    height: 60px;
+    line-height: 60px;
+    font-size: 1.5rem;
+  }
+
+  .newsletter-form {
+    flex-direction: column;
+  }
+
+  .newsletter-form .btn {
+    width: 100%;
+  }
+
+  .error-actions {
+    flex-direction: column;
+  }
+
+  .error-actions .btn {
+    width: 100%;
+  }
+}
+
+/*--------------------------------------------------------------
+# Dark Mode Overrides for Error Pages
+--------------------------------------------------------------*/
+[data-theme="dark"] .error-code {
+  background: linear-gradient(135deg, var(--accent-color) 0%, #a855f7 50%, var(--accent-color) 100%);
+  background-size: 200% 200%;
+  -webkit-background-clip: text;
+  background-clip: text;
+}
