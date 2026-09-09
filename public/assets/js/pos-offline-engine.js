@@ -10,15 +10,28 @@
         isSyncing: false,
         pingInterval: null,
         csrfToken: null,
+        failedPings: 0,
+
+        getPingUrl() {
+            return window.posEndpoints?.ping || '/pos/api/ping';
+        },
+
+        getCatalogUrl() {
+            return window.posEndpoints?.catalog || '/pos/api/catalog';
+        },
+
+        getSyncUrl() {
+            return window.posEndpoints?.sync || '/pos/api/sync';
+        },
 
         init() {
             this.csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
 
-            // 1. Initial network listener
+            // 1. Initial network listeners
             window.addEventListener('online', () => this.handleConnectivityChange(true));
             window.addEventListener('offline', () => this.handleConnectivityChange(false));
 
-            // 2. Periodic heartbeat ping (every 12 seconds to detect true internet vs dead WiFi)
+            // 2. Periodic heartbeat ping (every 15s using dedicated lightweight ping endpoint)
             this.startHeartbeat();
 
             // 3. Prime / Refresh local catalog
@@ -28,38 +41,57 @@
 
             // 4. Update UI queue counter on load
             this.updateQueueBadge();
+            this.updateStatusPill();
+
+            // Initial check
+            this.checkServerConnectivity();
 
             console.log('⚡ Food Point POS Offline Engine initialized');
         },
 
         isOnline() {
-            return this.isOnlineState;
+            return navigator.onLine;
+        },
+
+        async checkServerConnectivity() {
+            const online = navigator.onLine;
+            if (!online) {
+                if (this.isOnlineState) {
+                    this.handleConnectivityChange(false);
+                }
+                return;
+            }
+
+            try {
+                const res = await fetch(this.getPingUrl(), {
+                    method: 'GET',
+                    cache: 'no-store',
+                    headers: {
+                        'Accept': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                });
+
+                if (res.ok) {
+                    this.failedPings = 0;
+                    if (!this.isOnlineState) {
+                        this.handleConnectivityChange(true);
+                    }
+                } else {
+                    // Server reached but returned non-200; still have internet
+                    this.failedPings++;
+                }
+            } catch (err) {
+                this.failedPings++;
+                if (!navigator.onLine && this.isOnlineState) {
+                    this.handleConnectivityChange(false);
+                }
+            }
         },
 
         startHeartbeat() {
             if (this.pingInterval) clearInterval(this.pingInterval);
-            this.pingInterval = setInterval(async () => {
-                try {
-                    const res = await fetch('/pos/api/catalog', {
-                        method: 'HEAD',
-                        cache: 'no-store',
-                        headers: { 'X-Requested-With': 'XMLHttpRequest' }
-                    });
-                    if (res.ok) {
-                        if (!this.isOnlineState) {
-                            this.handleConnectivityChange(true);
-                        }
-                    } else {
-                        if (this.isOnlineState) {
-                            this.handleConnectivityChange(false);
-                        }
-                    }
-                } catch (err) {
-                    if (this.isOnlineState) {
-                        this.handleConnectivityChange(false);
-                    }
-                }
-            }, 12000);
+            this.pingInterval = setInterval(() => this.checkServerConnectivity(), 30000);
         },
 
         handleConnectivityChange(isOnline) {
@@ -83,10 +115,12 @@
             const pill = document.getElementById('posNetworkStatusPill');
             if (!pill) return;
 
+            const isReallyOnline = navigator.onLine;
+
             if (this.isSyncing) {
                 pill.className = 'badge bg-warning text-dark d-inline-flex align-items-center gap-1 px-2 py-1';
                 pill.innerHTML = '<span class="spinner-border spinner-border-sm" style="width: 10px; height: 10px;"></span> Syncing...';
-            } else if (this.isOnlineState) {
+            } else if (isReallyOnline) {
                 pill.className = 'badge bg-success-subtle text-success border border-success-subtle d-inline-flex align-items-center gap-1 px-2 py-1';
                 pill.innerHTML = '<span class="p-1 rounded-circle bg-success"></span> Online';
             } else {
@@ -115,7 +149,7 @@
          */
         async downloadCatalog() {
             try {
-                const res = await fetch('/pos/api/catalog', {
+                const res = await fetch(this.getCatalogUrl(), {
                     headers: { 'Accept': 'application/json' }
                 });
                 if (res.ok) {
@@ -146,7 +180,7 @@
             this.updateStatusPill();
 
             try {
-                const res = await fetch('/pos/api/sync', {
+                const res = await fetch(this.getSyncUrl(), {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',

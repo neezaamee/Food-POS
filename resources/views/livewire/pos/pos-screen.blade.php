@@ -1,59 +1,64 @@
 <div>
   <!-- Top POS Navigation Bar -->
   <header class="pos-navbar">
-    <div class="d-flex align-items-center gap-3">
-      <a href="{{ route('dashboard') }}" class="btn btn-outline-secondary btn-sm" title="Back to Backoffice">
-        <i class="bi bi-arrow-left me-1"></i> Dashboard
+    <div class="d-flex align-items-center gap-1 gap-sm-2 flex-shrink-0">
+      <a href="{{ route('dashboard') }}" class="btn btn-outline-secondary btn-sm px-2 text-nowrap" title="Back to Backoffice">
+        <i class="bi bi-arrow-left"></i>
+        <span class="d-none d-md-inline ms-1">Dashboard</span>
       </a>
-      <div class="d-flex align-items-center gap-2">
-        <img src="{{ \App\Models\SystemSetting::logoUrl() }}" alt="{{ \App\Models\SystemSetting::get('restaurant_name', 'Food Point') }}" style="height: 26px; max-width: 85px; object-fit: contain;">
-        <span class="fw-bold text-heading d-none d-md-inline" style="font-size: 0.95rem; max-width: 175px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+      <div class="d-flex align-items-center gap-1.5 gap-sm-2">
+        <img src="{{ \App\Models\SystemSetting::logoUrl() }}" alt="{{ \App\Models\SystemSetting::get('restaurant_name', 'Food Point') }}" style="height: 24px; max-width: 75px; object-fit: contain;">
+        <span class="fw-bold text-heading d-none d-lg-inline text-truncate" style="font-size: 0.88rem; max-width: 130px;" title="{{ \App\Models\SystemSetting::get('restaurant_name', 'Food Point POS') }}">
           {{ \App\Models\SystemSetting::get('restaurant_name', 'Food Point POS') }}
         </span>
-        <span class="badge bg-primary-subtle text-primary border border-primary-subtle d-none d-lg-inline" style="font-size: 0.65rem; padding: 2px 6px;">POS</span>
       </div>
 
       <!-- Order Type Selector Pills -->
-      <div class="btn-group btn-group-sm ms-2" role="group">
+      <div class="btn-group btn-group-sm ms-1" role="group">
         <button type="button" 
           wire:click="setOrderType('TAKEAWAY')" 
-          class="btn {{ $orderType === 'TAKEAWAY' ? 'btn-primary' : 'btn-outline-secondary' }} px-3 py-1">
-          <i class="ph-duotone ph-shopping-bag me-1"></i> TAKEAWAY
+          class="btn {{ $orderType === 'TAKEAWAY' ? 'btn-primary' : 'btn-outline-secondary' }} px-2 px-xl-3 py-1 text-nowrap"
+          title="Takeaway Order">
+          <i class="ph-duotone ph-shopping-bag me-1"></i><span class="d-none d-sm-inline">TAKEAWAY</span>
         </button>
         <button type="button" 
           wire:click="setOrderType('DINE_IN')" 
-          class="btn {{ $orderType === 'DINE_IN' ? 'btn-primary' : 'btn-outline-secondary' }} px-3 py-1">
-          <i class="ph-duotone ph-fork-knife me-1"></i> DINE-IN
+          class="btn {{ $orderType === 'DINE_IN' ? 'btn-primary' : 'btn-outline-secondary' }} px-2 px-xl-3 py-1 text-nowrap"
+          title="Dine-in Order">
+          <i class="ph-duotone ph-fork-knife me-1"></i><span class="d-none d-sm-inline">DINE-IN</span>
         </button>
         <button type="button" 
           wire:click="setOrderType('DELIVERY')" 
-          class="btn {{ $orderType === 'DELIVERY' ? 'btn-primary' : 'btn-outline-secondary' }} px-3 py-1">
-          <i class="ph-duotone ph-moped me-1"></i> DELIVERY
+          class="btn {{ $orderType === 'DELIVERY' ? 'btn-primary' : 'btn-outline-secondary' }} px-2 px-xl-3 py-1 text-nowrap"
+          title="Delivery Order">
+          <i class="ph-duotone ph-moped me-1"></i><span class="d-none d-sm-inline">DELIVERY</span>
         </button>
       </div>
     </div>
 
     <!-- Center/Right Status -->
-    <div class="d-flex align-items-center gap-3">
+    <div class="d-flex align-items-center gap-1 gap-md-2 ms-auto flex-shrink-0">
       @if ($activeShift)
-        <span class="badge badge-soft-success d-none d-lg-inline-flex align-items-center gap-1">
-          <i class="ph-duotone ph-vault"></i> Shift #{{ $activeShift->id }} Open (Float: Rs. {{ number_format($activeShift->opening_cash) }})
+        <span class="badge badge-soft-success d-none d-sm-inline-flex align-items-center gap-1 py-1 px-2 text-nowrap" style="font-size: 0.75rem;" title="Shift #{{ $activeShift->id }} Open">
+          <i class="ph-duotone ph-vault"></i> Shift #{{ $activeShift->id }}
         </span>
       @else
-        <button type="button" wire:click="$set('showOpenShiftModal', true)" class="btn btn-warning btn-sm py-1 px-2 d-inline-flex align-items-center gap-1 fw-bold shadow-sm" style="font-size: 0.78rem;">
-          <i class="ph-duotone ph-warning fs-6"></i> Open Shift to Punch Orders
+        <button type="button" wire:click="$set('showOpenShiftModal', true)" class="btn btn-warning btn-sm py-1 px-2 d-inline-flex align-items-center gap-1 fw-bold shadow-sm text-nowrap" style="font-size: 0.75rem;" title="Open Shift to Punch Orders">
+          <i class="ph-duotone ph-warning"></i>
+          <span>Open Shift<span class="d-none d-xl-inline"> to Punch</span></span>
         </button>
       @endif
 
       <!-- Network Status Pill (Online / Offline / Syncing) -->
-      <span id="posNetworkStatusPill" class="badge bg-success-subtle text-success border border-success-subtle d-inline-flex align-items-center gap-1 px-2 py-1" style="font-size: 0.75rem;" title="POS Network Status">
-        <span class="p-1 rounded-circle bg-success"></span> Online
+      <span id="posNetworkStatusPill" class="badge bg-success-subtle text-success border border-success-subtle d-inline-flex align-items-center gap-1 px-2 py-1 text-nowrap" style="font-size: 0.75rem;" title="POS Network Status">
+        <span class="p-1 rounded-circle bg-success"></span>
+        <span class="d-none d-md-inline">Online</span>
       </span>
 
       <!-- Offline Sync Badge & Trigger -->
-      <button type="button" id="posOfflineSyncBtn" onclick="PosOfflineEngine.syncNow()" class="btn btn-warning btn-sm py-1 px-2 d-none align-items-center gap-1 shadow-sm fw-bold" style="font-size: 0.75rem;" title="Click to sync offline orders to cloud">
+      <button type="button" id="posOfflineSyncBtn" onclick="PosOfflineEngine.syncNow()" class="btn btn-warning btn-sm py-1 px-2 d-none align-items-center gap-1 shadow-sm fw-bold text-nowrap" style="font-size: 0.75rem;" title="Click to sync offline orders to cloud">
         <i class="bi bi-cloud-arrow-up-fill"></i>
-        <span>Offline Queue</span>
+        <span class="d-none d-xl-inline">Offline Queue</span>
         <span id="posOfflineQueueBadge" class="badge bg-dark rounded-pill ms-1">0</span>
       </button>
 
@@ -61,36 +66,40 @@
       @php
         $openCount = \App\Models\Order::whereNull('finalized_at')->where('order_status', '!=', 'cancelled')->where('order_type', $orderType)->count();
       @endphp
-      <button type="button" wire:click="$toggle('showOpenOrdersModal')" class="btn btn-outline-secondary btn-sm position-relative">
-        <i class="bi bi-clock-history me-1"></i> Open {{ ucfirst(strtolower($orderType)) }} Orders
+      <button type="button" wire:click="$toggle('showOpenOrdersModal')" class="btn btn-outline-secondary btn-sm position-relative px-2 text-nowrap" title="Open {{ ucfirst(strtolower($orderType)) }} Orders">
+        <i class="bi bi-clock-history"></i>
+        <span class="d-none d-md-inline ms-1">
+          <span class="d-none d-xxl-inline">{{ ucfirst(strtolower($orderType)) }} </span>Orders
+        </span>
         @if ($openCount > 0)
-          <span class="badge bg-primary ms-1">{{ $openCount }}</span>
+          <span class="badge bg-primary ms-1 px-1.5">{{ $openCount }}</span>
         @endif
       </button>
 
       <!-- Refund / Invoices Quick Link -->
-      <a href="{{ route('orders.index') }}" target="_blank" class="btn btn-outline-danger btn-sm" title="Refunds, Returns & Order History">
-        <i class="bi bi-arrow-counter-clockwise me-1"></i> Refunds
+      <a href="{{ route('orders.index') }}" target="_blank" class="btn btn-outline-danger btn-sm px-2 text-nowrap" title="Refunds, Returns & Order History">
+        <i class="bi bi-arrow-counter-clockwise"></i>
+        <span class="d-none d-lg-inline ms-1">Refunds</span>
       </a>
 
       <!-- Theme Switcher -->
-      <button class="header-action theme-toggle" title="Toggle Theme">
+      <button class="header-action theme-toggle flex-shrink-0" title="Toggle Theme">
         <i class="bi bi-moon icon-dark"></i>
         <i class="bi bi-sun icon-light"></i>
       </button>
 
       <!-- Fullscreen -->
-      <button class="header-action fullscreen-toggle" onclick="toggleFullscreen()" title="Fullscreen">
+      <button class="header-action fullscreen-toggle flex-shrink-0" onclick="toggleFullscreen()" title="Fullscreen">
         <i class="bi bi-fullscreen icon-enter"></i>
         <i class="bi bi-fullscreen-exit icon-exit"></i>
       </button>
 
       <!-- Active User -->
-      <div class="d-flex align-items-center gap-2 border-start ps-3">
-        <img src="{{ asset('assets/img/profile-img.webp') }}" class="rounded-circle" width="32" height="32">
-        <div class="d-none d-xl-block small text-start">
-          <div class="fw-semibold text-truncate" style="max-width: 120px;">{{ auth()->user()->name ?? 'Cashier' }}</div>
-          <div class="text-muted" style="font-size: 0.75rem;">{{ ucfirst(auth()->user()->role ?? 'Staff') }}</div>
+      <div class="d-flex align-items-center gap-1.5 border-start ps-2 flex-shrink-0">
+        <img src="{{ asset('assets/img/profile-img.webp') }}" class="rounded-circle" width="30" height="30" alt="Avatar">
+        <div class="d-none d-xxl-block small text-start">
+          <div class="fw-semibold text-truncate" style="max-width: 90px;">{{ auth()->user()->name ?? 'Cashier' }}</div>
+          <div class="text-muted" style="font-size: 0.7rem; line-height: 1;">{{ ucfirst(auth()->user()->role ?? 'Staff') }}</div>
         </div>
       </div>
     </div>
@@ -110,7 +119,7 @@
   <!-- Main POS Grid Container -->
   <div class="pos-container">
     <!-- LEFT PANEL: Catalog & Search (60%) -->
-    <div class="col-12 col-lg-7 col-xl-8 p-3 d-flex flex-column h-100 overflow-hidden border-end" style="background: var(--background-color);">
+    <div class="col-12 col-lg-6 col-xl-7 p-3 d-flex flex-column h-100 overflow-hidden border-end" style="background: var(--background-color);">
       <!-- Top Filters: Search & Barcode -->
       <div class="d-flex flex-wrap align-items-center gap-2 mb-3">
         <div class="input-group input-group-sm flex-grow-1" style="max-width: 400px;">
@@ -261,7 +270,7 @@
     </div>
 
     <!-- RIGHT PANEL: Order Cart & Checkout (40%) -->
-    <div class="col-12 col-lg-5 col-xl-4 p-0 d-flex flex-column h-100 bg-surface">
+    <div class="col-12 col-lg-6 col-xl-5 p-0 d-flex flex-column h-100 bg-surface">
       <!-- Order Header -->
       <div class="p-3 border-bottom d-flex align-items-center justify-content-between">
         <div>
@@ -1527,16 +1536,18 @@
         PosOfflineEngine.showToast('Table selection is mandatory for Dine-In orders. Please select a table.', 'danger');
         return false;
       }
-      if (!state.customerName || state.customerName.toLowerCase() === 'walk-in customer' || state.customerName.toLowerCase() === 'walk-in') {
-        PosOfflineEngine.showToast('Customer Name is mandatory before saving an order.', 'danger');
-        document.getElementById('posCustomerName')?.focus();
-        return false;
-      }
-      const cleanPhone = state.customerPhone.replace(/[^0-9]/g, '');
-      if (!cleanPhone || cleanPhone.length < 10) {
-        PosOfflineEngine.showToast('Customer Phone Number (11 digits e.g. 03001234567) is mandatory.', 'danger');
-        document.getElementById('posCustomerPhone')?.focus();
-        return false;
+      if (state.orderType === 'DELIVERY') {
+        if (!state.customerName || state.customerName.toLowerCase() === 'walk-in customer' || state.customerName.toLowerCase() === 'walk-in') {
+          PosOfflineEngine.showToast('Customer Name is mandatory for Delivery orders.', 'danger');
+          document.getElementById('posCustomerName')?.focus();
+          return false;
+        }
+        const cleanPhone = (state.customerPhone || '').replace(/[^0-9]/g, '');
+        if (!cleanPhone || cleanPhone.length < 10) {
+          PosOfflineEngine.showToast('Customer Phone Number (at least 10 digits e.g. 03001234567) is mandatory for Delivery.', 'danger');
+          document.getElementById('posCustomerPhone')?.focus();
+          return false;
+        }
       }
       return true;
     };
@@ -1812,12 +1823,12 @@
       }
     };
 
-    // Attach capture-phase interceptors on Save, Print Bill, Pay
+    // Attach capture-phase interceptors on Save, Print Bill, Pay ONLY when physically offline
     ['posSaveOrderBtn', 'posPrintBillBtn', 'posPayBtn'].forEach(btnId => {
       const btn = document.getElementById(btnId);
       if (btn) {
         btn.addEventListener('click', function(e) {
-          if (!window.PosOfflineEngine || !window.PosOfflineEngine.isOnline()) {
+          if (!navigator.onLine && (!window.PosOfflineEngine || !window.PosOfflineEngine.isOnline())) {
             e.preventDefault();
             e.stopImmediatePropagation();
             const action = btnId === 'posSaveOrderBtn' ? 'save' : (btnId === 'posPrintBillBtn' ? 'bill' : 'pay');
@@ -1827,12 +1838,12 @@
       }
     });
 
-    // Offline item punch via Item Code input
+    // Offline item punch via Item Code input ONLY when physically offline
     const codeInp = document.getElementById('posProductCodeInput');
     if (codeInp) {
       codeInp.addEventListener('keydown', async function(e) {
         if (e.key === 'Enter') {
-          if (!window.PosOfflineEngine || !window.PosOfflineEngine.isOnline()) {
+          if (!navigator.onLine && (!window.PosOfflineEngine || !window.PosOfflineEngine.isOnline())) {
             e.preventDefault();
             e.stopImmediatePropagation();
             const val = this.value.trim();
@@ -1896,9 +1907,9 @@
       }, true);
     }
 
-    // Capture product card click when offline
+    // Capture product card click ONLY when physically offline
     document.addEventListener('click', async function(e) {
-      if (!window.PosOfflineEngine || !window.PosOfflineEngine.isOnline()) {
+      if (!navigator.onLine && (!window.PosOfflineEngine || !window.PosOfflineEngine.isOnline())) {
         const card = e.target.closest('.product-card');
         if (card) {
           e.preventDefault();
@@ -1936,9 +1947,9 @@
       }
     }, true);
 
-    // Capture table click when offline
+    // Capture table click ONLY when physically offline
     document.addEventListener('click', function(e) {
-      if (!window.PosOfflineEngine || !window.PosOfflineEngine.isOnline()) {
+      if (!navigator.onLine && (!window.PosOfflineEngine || !window.PosOfflineEngine.isOnline())) {
         const tableBtn = e.target.closest('button');
         if (tableBtn && (tableBtn.getAttribute('wire:click') || '').includes('selectTable')) {
           e.preventDefault();

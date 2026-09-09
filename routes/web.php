@@ -44,6 +44,7 @@ Route::middleware('auth')->group(function () {
 
     // POS Offline Support API (IndexedDB Catalog & Sync)
     Route::prefix('pos/api')->name('pos.api.')->group(function () {
+        Route::get('/ping', fn () => response()->json(['ok' => true, 'timestamp' => now()->timestamp]))->name('ping');
         Route::get('/catalog', [PosOfflineController::class, 'getCatalog'])->name('catalog');
         Route::post('/sync', [PosOfflineController::class, 'syncOrders'])->name('sync');
     });

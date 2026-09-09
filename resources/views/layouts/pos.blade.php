@@ -38,20 +38,29 @@
     }
 
     .pos-navbar {
-      height: 60px;
+      min-height: 56px;
+      height: 56px;
       background: var(--surface-color, #ffffff);
       border-bottom: 1px solid var(--border-color, #e4e4e7);
-      padding: 0 1.25rem;
+      padding: 0 0.75rem;
       display: flex;
       align-items: center;
       justify-content: space-between;
       position: sticky;
       top: 0;
       z-index: 1000;
+      gap: 0.5rem;
+    }
+
+    @media (min-width: 1400px) {
+      .pos-navbar {
+        padding: 0 1.25rem;
+        gap: 0.75rem;
+      }
     }
 
     .pos-container {
-      height: calc(100vh - 60px);
+      height: calc(100vh - 56px);
       display: flex;
       overflow: hidden;
     }
@@ -126,16 +135,30 @@
   @livewireScripts
   
   <!-- POS Offline Engine & IndexedDB Sync Scripts -->
+  <script>
+    window.posEndpoints = {
+      ping: "{{ route('pos.api.ping') }}",
+      catalog: "{{ route('pos.api.catalog') }}",
+      sync: "{{ route('pos.api.sync') }}"
+    };
+  </script>
   <script src="{{ asset('assets/js/pos-offline-db.js') }}"></script>
   <script src="{{ asset('assets/js/pos-offline-printer.js') }}"></script>
   <script src="{{ asset('assets/js/pos-offline-engine.js') }}"></script>
   <script>
     if ('serviceWorker' in navigator) {
-      window.addEventListener('load', () => {
-        navigator.serviceWorker.register('/sw.js')
-          .then(reg => console.log('FoodPoint POS ServiceWorker registered:', reg.scope))
-          .catch(err => console.warn('ServiceWorker registration failed:', err));
+      navigator.serviceWorker.getRegistrations().then(function(registrations) {
+        for (let registration of registrations) {
+          registration.unregister();
+        }
       });
+      if ('caches' in window) {
+        caches.keys().then(function(names) {
+          for (let name of names) {
+            caches.delete(name);
+          }
+        });
+      }
     }
   </script>
 
