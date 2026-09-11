@@ -14,7 +14,7 @@ return new class extends Migration
         // 1. Central Orders Table
         Schema::create('orders', function (Blueprint $table) {
             $table->id();
-            $table->string('order_number', 50)->unique();
+            $table->string('order_number', 50)->index();
             $table->string('order_type', 30); // TAKEAWAY, DINE_IN, DELIVERY
             $table->string('order_status', 30)->default('draft');
             // draft, confirmed, preparing, ready, assigned, out_for_delivery, delivered, pending_payment, completed, cancelled
@@ -115,7 +115,7 @@ return new class extends Migration
         // 5. Stock Adjustments
         Schema::create('stock_adjustments', function (Blueprint $table) {
             $table->id();
-            $table->string('adjustment_number', 50)->unique();
+            $table->string('adjustment_number', 50)->index();
             $table->foreignId('product_id')->constrained('products')->cascadeOnDelete();
             $table->string('type', 20); // addition, subtraction
             $table->decimal('quantity', 12, 2);
@@ -127,7 +127,7 @@ return new class extends Migration
         // 6. Purchases (Procurement)
         Schema::create('purchases', function (Blueprint $table) {
             $table->id();
-            $table->string('purchase_number', 50)->unique();
+            $table->string('purchase_number', 50)->index();
             $table->string('supplier_name', 150);
             $table->date('purchase_date');
             $table->decimal('subtotal', 15, 2)->default(0.00);
@@ -152,7 +152,7 @@ return new class extends Migration
         // 7. Sale Returns / Credit Notes
         Schema::create('sale_returns', function (Blueprint $table) {
             $table->id();
-            $table->string('return_number', 50)->unique();
+            $table->string('return_number', 50)->index();
             $table->foreignId('order_id')->constrained('orders')->cascadeOnDelete();
             $table->foreignId('customer_id')->nullable()->constrained('customers')->nullOnDelete();
             $table->decimal('subtotal', 15, 2)->default(0.00);
@@ -223,7 +223,7 @@ return new class extends Migration
         // 10. System Settings & FBR
         Schema::create('system_settings', function (Blueprint $table) {
             $table->id();
-            $table->string('key', 100)->unique();
+            $table->string('key', 100)->index();
             $table->text('value')->nullable();
             $table->string('group', 50)->default('general');
             $table->timestamps();

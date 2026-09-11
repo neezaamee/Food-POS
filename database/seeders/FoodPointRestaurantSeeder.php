@@ -13,14 +13,28 @@ use App\Models\RestaurantTable;
 use App\Models\StockMovement;
 use App\Models\SystemSetting;
 use App\Models\TableSection;
+use App\Models\Tenant;
 use App\Models\Unit;
 use App\Models\User;
+use App\Services\SaaS\TenantContext;
 use Illuminate\Database\Seeder;
 
 class FoodPointRestaurantSeeder extends Seeder
 {
     public function run(): void
     {
+        $tenant = Tenant::first() ?? Tenant::create([
+            'id' => 1,
+            'name' => 'Food Point Main',
+            'slug' => 'food-point-main',
+            'email' => 'admin@foodpoint.com',
+            'phone' => '+92 300 1234567',
+            'currency' => 'Rs.',
+            'timezone' => 'Asia/Karachi',
+            'status' => 'active',
+        ]);
+        TenantContext::set($tenant);
+
         // 1. Chart of Accounts
         $accounts = [
             // Assets
@@ -59,7 +73,8 @@ class FoodPointRestaurantSeeder extends Seeder
         $accountMap = [];
         foreach ($accounts as $acc) {
             $parentId = isset($acc['parent']) && isset($accountMap[$acc['parent']]) ? $accountMap[$acc['parent']]->id : null;
-            $model = Account::firstOrCreate(['code' => $acc['code']], [
+            $model = Account::firstOrCreate(['code' => $acc['code'], 'tenant_id' => 1], [
+                'tenant_id' => 1,
                 'name' => $acc['name'],
                 'type' => $acc['type'],
                 'level' => $acc['level'],

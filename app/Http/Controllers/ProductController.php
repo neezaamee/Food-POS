@@ -8,6 +8,8 @@ use App\Models\Product;
 use App\Models\RecipeItem;
 use App\Models\StockMovement;
 use App\Models\Unit;
+use App\Services\SaaS\SubscriptionService;
+use App\Services\SaaS\TenantContext;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -53,11 +55,12 @@ class ProductController extends Controller
     public function store(Request $request)
     {
         $hasVariants = $request->boolean('has_variants');
+        $tenantId = TenantContext::id() ?? 1;
 
         $request->validate([
             'name' => 'required|string|max:150',
             'name_ur' => 'nullable|string|max:150',
-            'code' => 'required|string|unique:products,code|max:50',
+            'code' => "required|string|max:50|unique:products,code,NULL,id,tenant_id,{$tenantId}",
             'category_id' => 'required|exists:categories,id',
             'type' => 'nullable|in:menu_item,raw_material,standard',
             'sale_price' => $hasVariants ? 'nullable|numeric|min:0' : 'required|numeric|min:0',
@@ -68,6 +71,10 @@ class ProductController extends Controller
             'variants.*.name' => 'required_if:has_variants,1|string|max:50',
             'variants.*.sale_price' => 'required_if:has_variants,1|numeric|min:0',
         ]);
+
+        if (! app(SubscriptionService::class)->canCreateProduct()) {
+            return back()->with('error', 'You have reached the maximum product limit allowed by your subscription plan. Please upgrade to add more products.');
+        }
 
         return DB::transaction(function () use ($request, $hasVariants) {
             $parent = Product::create([

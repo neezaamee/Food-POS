@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('deals', function (Blueprint $table) {
             $table->id();
             $table->string('name', 150);
-            $table->string('code', 50)->unique();
+            $table->string('code', 50)->index();
             $table->text('description')->nullable();
             $table->decimal('sale_price', 15, 2)->default(0.00);
             $table->decimal('cost_price', 15, 2)->default(0.00);

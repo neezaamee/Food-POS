@@ -96,6 +96,19 @@
 </head>
 
 <body>
+  @if(\App\Services\SaaS\TenantContext::instance()->isImpersonating())
+    <div class="bg-warning text-dark px-4 py-2 d-flex flex-wrap align-items-center justify-content-between shadow-sm" style="position: sticky; top: 0; z-index: 99999; font-size: 0.9rem;">
+      <div class="d-flex align-items-center gap-2">
+        <i class="ph-duotone ph-warning-octagon fs-5"></i>
+        <span><strong>IMPERSONATION ACTIVE:</strong> You are managing <strong>{{ \App\Services\SaaS\TenantContext::current()?->name }}</strong> as SaaS Super Administrator.</span>
+      </div>
+      <a href="{{ route('saas.exit-impersonation') }}" class="btn btn-sm btn-dark text-white fw-semibold d-inline-flex align-items-center gap-1 shadow-sm">
+        <i class="ph-duotone ph-sign-out"></i>
+        <span>Exit Impersonation</span>
+      </a>
+    </div>
+  @endif
+
   <!-- Header -->
   <header class="header">
     <!-- Header Left -->
@@ -399,6 +412,23 @@
             <span>Audit Trail</span>
           </a>
         </li>
+
+        @if(auth()->user()?->role === 'super-admin' || auth()->user()?->hasRole('super-admin') || empty(auth()->user()?->tenant_id))
+        <!-- SaaS Platform Super Admin -->
+        <li class="nav-heading"><span>SaaS Platform</span></li>
+        <li class="nav-item has-submenu {{ request()->routeIs('saas.*') ? 'open' : '' }}">
+          <a class="nav-link" href="#" aria-expanded="{{ request()->routeIs('saas.*') ? 'true' : 'false' }}" data-tooltip="SaaS Admin">
+            <i class="ph-duotone ph-buildings text-warning"></i>
+            <span>SaaS Admin</span>
+            <i class="ph-duotone ph-caret-down nav-arrow"></i>
+          </a>
+          <ul class="nav-submenu">
+            <li><a class="nav-link {{ request()->routeIs('saas.dashboard') ? 'active' : '' }}" href="{{ route('saas.dashboard') }}"><i class="ph-duotone ph-gauge me-1 text-warning"></i> Overview</a></li>
+            <li><a class="nav-link {{ request()->routeIs('saas.tenants*') ? 'active' : '' }}" href="{{ route('saas.tenants.index') }}"><i class="ph-duotone ph-storefront me-1 text-primary"></i> Tenants</a></li>
+            <li><a class="nav-link {{ request()->routeIs('saas.plans*') ? 'active' : '' }}" href="{{ route('saas.plans.index') }}"><i class="ph-duotone ph-credit-card me-1 text-success"></i> Plans & Pricing</a></li>
+          </ul>
+        </li>
+        @endif
       </ul>
     </nav>
   </aside>

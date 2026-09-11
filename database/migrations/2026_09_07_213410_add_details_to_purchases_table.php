@@ -1,6 +1,5 @@
 <?php
 
-use App\Models\Unit;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
@@ -29,7 +28,15 @@ return new class extends Migration
         ];
 
         foreach ($commonUnits as $u) {
-            Unit::firstOrCreate(['code' => $u['code']], ['name' => $u['name']]);
+            $existing = DB::table('units')->where('code', $u['code'])->first();
+            if (! $existing) {
+                DB::table('units')->insert([
+                    'code' => $u['code'],
+                    'name' => $u['name'],
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ]);
+            }
         }
     }
 

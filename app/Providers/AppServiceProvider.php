@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use App\Services\SaaS\TenantContext;
 use Illuminate\Pagination\Paginator;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\URL;
@@ -14,7 +15,9 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        //
+        $this->app->singleton(TenantContext::class, function () {
+            return new TenantContext;
+        });
     }
 
     /**

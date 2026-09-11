@@ -8,6 +8,8 @@ use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\RestaurantTable;
 use App\Models\TableSection;
+use App\Services\SaaS\SubscriptionService;
+use App\Services\SaaS\TenantContext;
 use Illuminate\Http\Request;
 
 class RestaurantController extends Controller
@@ -30,8 +32,14 @@ class RestaurantController extends Controller
 
     public function storeTable(Request $request)
     {
+        if (! app(SubscriptionService::class)->canCreateTable()) {
+            return back()->with('error', 'You have reached the maximum tables limit allowed by your subscription plan. Please upgrade to add more tables.');
+        }
+
+        $tenantId = TenantContext::id() ?? 1;
+
         $request->validate([
-            'table_number' => 'required|string|unique:tables,table_number|max:50',
+            'table_number' => "required|string|max:50|unique:tables,table_number,NULL,id,tenant_id,{$tenantId}",
             'name' => 'required|string|max:100',
             'section_id' => 'required|exists:table_sections,id',
             'capacity' => 'required|integer|min:1',

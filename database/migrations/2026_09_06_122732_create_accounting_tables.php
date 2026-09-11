@@ -14,7 +14,7 @@ return new class extends Migration
         // 1. Chart of Accounts
         Schema::create('accounts', function (Blueprint $table) {
             $table->id();
-            $table->string('code', 50)->unique();
+            $table->string('code', 50)->index();
             $table->string('name', 150);
             $table->string('type', 30); // asset, liability, equity, income, expense
             $table->foreignId('parent_id')->nullable()->constrained('accounts')->nullOnDelete();
@@ -30,7 +30,7 @@ return new class extends Migration
         // 2. Journal Entries (General Ledger Header)
         Schema::create('journal_entries', function (Blueprint $table) {
             $table->id();
-            $table->string('entry_number', 50)->unique();
+            $table->string('entry_number', 50)->index();
             $table->date('entry_date');
             $table->string('voucher_type', 30); // sale, payment, receipt, journal, sale_return
             $table->string('reference_type', 50)->nullable();

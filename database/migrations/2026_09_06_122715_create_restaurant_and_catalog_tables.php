@@ -15,7 +15,7 @@ return new class extends Migration
         Schema::create('categories', function (Blueprint $table) {
             $table->id();
             $table->string('name', 100);
-            $table->string('slug', 100)->unique();
+            $table->string('slug', 100)->index();
             $table->text('description')->nullable();
             $table->string('image')->nullable();
             $table->boolean('is_active')->default(true);
@@ -26,7 +26,7 @@ return new class extends Migration
         Schema::create('brands', function (Blueprint $table) {
             $table->id();
             $table->string('name', 100);
-            $table->string('slug', 100)->unique();
+            $table->string('slug', 100)->index();
             $table->boolean('is_active')->default(true);
             $table->timestamps();
         });
@@ -35,7 +35,7 @@ return new class extends Migration
         Schema::create('units', function (Blueprint $table) {
             $table->id();
             $table->string('name', 50);
-            $table->string('code', 20)->unique();
+            $table->string('code', 20)->index();
             $table->timestamps();
         });
 
@@ -43,8 +43,8 @@ return new class extends Migration
         Schema::create('products', function (Blueprint $table) {
             $table->id();
             $table->string('name', 150);
-            $table->string('code', 50)->nullable()->unique();
-            $table->string('sku', 50)->nullable()->unique();
+            $table->string('code', 50)->nullable()->index();
+            $table->string('sku', 50)->nullable()->index();
             $table->string('barcode', 100)->nullable()->index();
             $table->foreignId('category_id')->nullable()->constrained('categories')->nullOnDelete();
             $table->foreignId('brand_id')->nullable()->constrained('brands')->nullOnDelete();
@@ -87,7 +87,7 @@ return new class extends Migration
         // 7. Restaurant Tables
         Schema::create('tables', function (Blueprint $table) {
             $table->id();
-            $table->string('table_number', 50)->unique();
+            $table->string('table_number', 50)->index();
             $table->string('name', 100);
             $table->foreignId('section_id')->constrained('table_sections')->cascadeOnDelete();
             $table->unsignedInteger('capacity')->default(4);
@@ -101,7 +101,7 @@ return new class extends Migration
         Schema::create('delivery_areas', function (Blueprint $table) {
             $table->id();
             $table->string('name', 100);
-            $table->string('code', 30)->unique();
+            $table->string('code', 30)->index();
             $table->decimal('delivery_charge', 15, 2)->default(0.00);
             $table->decimal('estimated_distance_km', 8, 2)->default(0.00);
             $table->boolean('is_active')->default(true);
@@ -113,7 +113,7 @@ return new class extends Migration
             $table->id();
             $table->string('name', 100);
             $table->string('mobile', 30)->index();
-            $table->string('employee_id', 50)->unique();
+            $table->string('employee_id', 50)->index();
             $table->string('vehicle_type', 50)->default('Motorbike');
             $table->string('vehicle_number', 50)->nullable();
             $table->string('status', 30)->default('available'); // available, assigned, on_delivery, offline

@@ -33,6 +33,11 @@
     </div>
 
     <button type="submit" class="btn btn-primary w-100 py-2">Sign In</button>
+
+    <div class="text-center mt-3 small">
+      <span class="text-muted">New restaurant owner?</span>
+      <a href="{{ route('tenant.register') }}" class="fw-semibold text-primary text-decoration-none">Register Food Point</a>
+    </div>
   </form>
 
   <div class="mt-4 pt-3 border-top text-center text-muted small">

@@ -1,5 +1,8 @@
 <?php
 
+use App\Http\Middleware\EnsureSuperAdmin;
+use App\Http\Middleware\EnsureTenantContext;
+use App\Http\Middleware\FeatureGate;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
@@ -12,7 +15,15 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
-        //
+        $middleware->web(append: [
+            EnsureTenantContext::class,
+        ]);
+
+        $middleware->alias([
+            'tenant' => EnsureTenantContext::class,
+            'super_admin' => EnsureSuperAdmin::class,
+            'feature' => FeatureGate::class,
+        ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         $exceptions->shouldRenderJsonWhen(

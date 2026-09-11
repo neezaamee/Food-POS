@@ -2,14 +2,16 @@
 
 namespace App\Models;
 
+use App\Services\SaaS\TenantContext;
+use App\Traits\BelongsToTenant;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class SystemSetting extends Model
 {
-    use HasFactory;
+    use BelongsToTenant, HasFactory;
 
-    protected $fillable = ['key', 'value', 'group'];
+    protected $fillable = ['tenant_id', 'key', 'value', 'group'];
 
     /**
      * Retrieve a setting value with optional fallback key aliasing
@@ -49,7 +51,12 @@ class SystemSetting extends Model
 
     public static function set(string $key, $value, string $group = 'general')
     {
-        return static::updateOrCreate(['key' => $key], ['value' => $value, 'group' => $group]);
+        $match = ['key' => $key];
+        if (TenantContext::hasTenant()) {
+            $match['tenant_id'] = TenantContext::getTenantId();
+        }
+
+        return static::updateOrCreate($match, ['value' => $value, 'group' => $group]);
     }
 
     /**

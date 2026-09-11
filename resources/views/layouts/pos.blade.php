@@ -97,6 +97,19 @@
 </head>
 
 <body class="pos-body">
+  @if(\App\Services\SaaS\TenantContext::instance()->isImpersonating())
+    <div class="bg-warning text-dark px-3 py-2 d-flex flex-wrap align-items-center justify-content-between shadow-sm no-print" style="position: sticky; top: 0; z-index: 99999; font-size: 0.85rem;">
+      <div class="d-flex align-items-center gap-2">
+        <i class="ph-duotone ph-warning-octagon fs-5"></i>
+        <span><strong>IMPERSONATING:</strong> Managing POS for <strong>{{ \App\Services\SaaS\TenantContext::current()?->name }}</strong>.</span>
+      </div>
+      <a href="{{ route('saas.exit-impersonation') }}" class="btn btn-sm btn-dark text-white fw-semibold d-inline-flex align-items-center gap-1 shadow-sm">
+        <i class="ph-duotone ph-sign-out"></i>
+        <span>Exit Impersonation</span>
+      </a>
+    </div>
+  @endif
+
   <div class="pos-wrapper">
     @yield('content')
     {{ $slot ?? '' }}

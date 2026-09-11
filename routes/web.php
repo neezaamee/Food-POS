@@ -15,13 +15,18 @@ use App\Http\Controllers\ProductController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\ResourceController;
 use App\Http\Controllers\RestaurantController;
+use App\Http\Controllers\SaaS\TenantRegistrationController;
+use App\Http\Controllers\SuperAdmin\SaasAdminController;
 use App\Livewire\Pos\PosScreen;
 use Illuminate\Support\Facades\Route;
 
-// Authentication Routes
+// Authentication & Public SaaS Onboarding Routes
 Route::middleware('guest')->group(function () {
     Route::get('/login', [AuthController::class, 'login'])->name('login');
     Route::post('/login', [AuthController::class, 'loginPost'])->name('login.post');
+
+    Route::get('/register-tenant', [TenantRegistrationController::class, 'showRegistrationForm'])->name('tenant.register');
+    Route::post('/register-tenant', [TenantRegistrationController::class, 'register'])->name('tenant.register.submit');
 });
 
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout')->middleware('auth');
@@ -209,4 +214,20 @@ Route::middleware('auth')->group(function () {
     Route::get('/fbr', [AdminController::class, 'fbr'])->name('fbr.index');
     Route::get('/whatsapp', [WhatsAppController::class, 'index'])->name('whatsapp.index');
     Route::get('/audit-logs', [AdminController::class, 'auditLogs'])->name('audit-logs.index');
+
+    // SaaS Platform Super-Admin Management
+    Route::middleware(['super_admin'])->prefix('saas-admin')->name('saas.')->group(function () {
+        Route::get('/', [SaasAdminController::class, 'dashboard'])->name('dashboard');
+        Route::get('/tenants', [SaasAdminController::class, 'tenants'])->name('tenants.index');
+        Route::get('/tenants/{tenant}', [SaasAdminController::class, 'tenantDetails'])->name('tenants.show');
+        Route::patch('/tenants/{tenant}/status', [SaasAdminController::class, 'updateTenantStatus'])->name('tenants.status');
+        Route::patch('/tenants/{tenant}/plan', [SaasAdminController::class, 'updateTenantPlan'])->name('tenants.plan');
+        Route::get('/tenants/{tenant}/impersonate', [SaasAdminController::class, 'impersonate'])->name('tenants.impersonate');
+        Route::get('/exit-impersonation', [SaasAdminController::class, 'exitImpersonation'])->name('exit-impersonation');
+
+        // Plans & Features
+        Route::get('/plans', [SaasAdminController::class, 'plans'])->name('plans.index');
+        Route::post('/plans', [SaasAdminController::class, 'storePlan'])->name('plans.store');
+        Route::put('/plans/{plan}', [SaasAdminController::class, 'updatePlan'])->name('plans.update');
+    });
 });

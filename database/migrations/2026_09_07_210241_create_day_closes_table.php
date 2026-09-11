@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('day_closes', function (Blueprint $table) {
             $table->id();
-            $table->date('business_date')->unique();
+            $table->date('business_date')->index();
             $table->foreignId('closed_by')->nullable()->constrained('users')->nullOnDelete();
             $table->unsignedInteger('total_shifts_count')->default(0);
             $table->unsignedInteger('total_orders_count')->default(0);

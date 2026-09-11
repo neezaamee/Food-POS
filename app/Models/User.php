@@ -13,6 +13,7 @@ class User extends Authenticatable
     use HasFactory, Notifiable;
 
     protected $fillable = [
+        'tenant_id',
         'name',
         'email',
         'phone',
@@ -21,6 +22,11 @@ class User extends Authenticatable
         'avatar',
         'password',
     ];
+
+    public function tenant()
+    {
+        return $this->belongsTo(Tenant::class);
+    }
 
     protected $hidden = [
         'password',

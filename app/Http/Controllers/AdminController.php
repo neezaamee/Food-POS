@@ -8,6 +8,7 @@ use App\Models\FbrSubmission;
 use App\Models\Role;
 use App\Models\SystemSetting;
 use App\Models\User;
+use App\Services\SaaS\SubscriptionService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rule;
@@ -39,6 +40,10 @@ class AdminController extends Controller
 
     public function storeUser(Request $request)
     {
+        if (! app(SubscriptionService::class)->canCreateUser()) {
+            return redirect()->back()->with('error', 'You have reached the maximum staff user limit allowed by your subscription plan. Please upgrade to add more staff.');
+        }
+
         $request->validate([
             'name' => 'required|string|max:255',
             'email' => 'required|email|unique:users,email',

@@ -12,6 +12,7 @@ use App\Models\User;
 use App\Services\Accounting\AccountingService;
 use App\Services\Inventory\StockService;
 use App\Services\Restaurant\TableService;
+use App\Services\SaaS\SubscriptionService;
 use Exception;
 use Illuminate\Support\Facades\DB;
 
@@ -54,6 +55,10 @@ class OrderService
      */
     public function createOrder(array $data): Order
     {
+        if (! app(SubscriptionService::class)->canCreateOrder()) {
+            throw new Exception('Monthly order limit reached for your subscription plan. Please upgrade your plan to continue processing orders.');
+        }
+
         return DB::transaction(function () use ($data) {
             $orderType = strtoupper($data['order_type'] ?? 'TAKEAWAY');
             if ($orderType === 'DINE_IN' && empty($data['table_id'])) {
