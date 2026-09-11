@@ -30,13 +30,13 @@ class SaasAdminController extends Controller
             $activeSubscriptions = Subscription::where('status', 'active')->count();
 
             $totalOrders = Order::withoutGlobalScopes()->count();
-            $totalPlatformSales = (float) Order::withoutGlobalScopes()->where('status', 'completed')->sum('grand_total');
+            $totalPlatformSales = (float) Order::withoutGlobalScopes()->where('order_status', 'completed')->sum('grand_total');
 
             // Estimated Monthly Recurring Revenue (MRR)
             $mrr = Subscription::where('status', 'active')
                 ->with('plan')
                 ->get()
-                ->sum(fn ($sub) => $sub->plan?->price ?? 0);
+                ->sum(fn ($sub) => $sub->plan?->price_monthly ?? 0);
 
             $recentTenants = Tenant::with(['subscriptions' => fn ($q) => $q->latest()->with('plan')])
                 ->latest()
@@ -104,9 +104,9 @@ class SaasAdminController extends Controller
             $users = User::withoutGlobalScopes()->where('tenant_id', $tenant->id)->get();
             $productsCount = Product::withoutGlobalScopes()->where('tenant_id', $tenant->id)->count();
             $ordersCount = Order::withoutGlobalScopes()->where('tenant_id', $tenant->id)->count();
-            $salesTotal = (float) Order::withoutGlobalScopes()->where('tenant_id', $tenant->id)->where('status', 'completed')->sum('grand_total');
+            $salesTotal = (float) Order::withoutGlobalScopes()->where('tenant_id', $tenant->id)->where('order_status', 'completed')->sum('grand_total');
 
-            $currentSubscription = $tenant->subscription;
+            $currentSubscription = $tenant->activeSubscription ?? $tenant->subscriptions()->latest()->first();
             $allPlans = Plan::where('is_active', true)->get();
 
             return view('saas.admin.tenant_details', compact(

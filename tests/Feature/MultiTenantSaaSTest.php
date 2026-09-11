@@ -124,6 +124,20 @@ class MultiTenantSaaSTest extends TestCase
         $this->assertEquals('T1 Exclusive Dish', $found->name);
     }
 
+    public function test_super_admin_can_view_saas_dashboard_and_tenant_details(): void
+    {
+        $superAdmin = User::where('role', 'super-admin')->first();
+        $this->actingAs($superAdmin);
+
+        $response = $this->get(route('saas.dashboard'));
+        $response->assertStatus(200);
+        $response->assertSee('SaaS Platform Administration');
+
+        $tenant = Tenant::first();
+        $detailResponse = $this->get(route('saas.tenants.show', $tenant));
+        $detailResponse->assertStatus(200);
+    }
+
     public function test_super_admin_can_impersonate_and_exit_tenant(): void
     {
         $superAdmin = User::where('role', 'super-admin')->first();
