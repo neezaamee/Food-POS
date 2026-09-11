@@ -13,11 +13,13 @@ use App\Models\KotItem;
 use App\Models\Order;
 use App\Models\Product;
 use App\Models\RestaurantTable;
+use App\Models\SystemSetting;
 use App\Models\TableSection;
 use App\Services\Cash\CashShiftService;
 use App\Services\Restaurant\TableService;
 use App\Services\Sales\OrderService;
 use App\Services\Sales\PaymentService;
+use App\Services\WhatsApp\WhatsAppService;
 use Exception;
 use Livewire\Component;
 
@@ -89,6 +91,21 @@ class PosScreen extends Component
     public bool $showReceiptModal = false;
 
     public ?Order $completedOrder = null;
+
+    // WhatsApp Receipt & QR Modal State
+    public bool $showWhatsAppModal = false;
+
+    public string $whatsAppRecipientPhone = '';
+
+    public bool $isSendingWhatsApp = false;
+
+    public bool $whatsAppConnected = false;
+
+    public ?string $whatsAppQrCode = null;
+
+    public ?string $whatsAppFallbackUrl = null;
+
+    public string $whatsAppStatusText = '';
 
     // Hold / Open Orders Modal
     public bool $showOpenOrdersModal = false;
@@ -956,8 +973,14 @@ class PosScreen extends Component
 
             // 4. Set completed order for receipt modal
             $this->completedOrder = $order->fresh(['items', 'payments', 'customer', 'table', 'deliveryArea', 'rider', 'cashier']);
+            $this->whatsAppRecipientPhone = $this->completedOrder->customer_phone ?? '';
+            $this->whatsAppFallbackUrl = null;
             $this->showCheckoutModal = false;
             $this->showReceiptModal = true;
+
+            if (SystemSetting::get('whatsapp_auto_send') === '1' && ! empty($this->whatsAppRecipientPhone)) {
+                $this->sendWhatsAppReceipt($this->whatsAppRecipientPhone);
+            }
 
             $this->notify("Order #{$order->order_number} successfully completed and printed!");
 
@@ -1255,6 +1278,11 @@ class PosScreen extends Component
             $closed = true;
         }
 
+        if ($this->showWhatsAppModal) {
+            $this->closeWhatsAppModal();
+            $closed = true;
+        }
+
         if ($closed) {
             $this->dispatch('refocus-pos-inputs');
         }
@@ -1266,5 +1294,86 @@ class PosScreen extends Component
     {
         $this->notificationMessage = $message;
         $this->notificationType = $type;
+    }
+
+    public function sendWhatsAppReceipt(?string $phone = null)
+    {
+        if (! $this->completedOrder) {
+            $this->notify('No completed order found to send receipt.', 'warning');
+
+            return;
+        }
+
+        $targetPhone = $phone ?: ($this->whatsAppRecipientPhone ?: $this->completedOrder->customer_phone);
+
+        if (empty($targetPhone)) {
+            $this->notify('Please enter a valid customer phone number to send WhatsApp receipt.', 'warning');
+
+            return;
+        }
+
+        $this->isSendingWhatsApp = true;
+        $whatsAppService = app(WhatsAppService::class);
+
+        $result = $whatsAppService->sendReceipt($this->completedOrder, $targetPhone);
+
+        $this->isSendingWhatsApp = false;
+
+        if ($result['ok'] ?? false) {
+            $this->whatsAppFallbackUrl = null;
+            $this->notify("Receipt sent to customer (+{$result['recipient']}) via WhatsApp!", 'success');
+        } else {
+            $errMsg = $result['error'] ?? 'Failed to send WhatsApp message.';
+            $this->whatsAppFallbackUrl = $result['fallback_url'] ?? null;
+
+            // Check if failure is due to WhatsApp not being connected
+            $status = $whatsAppService->getStatus();
+            if ($status['running'] && ! $status['connected']) {
+                $this->whatsAppQrCode = $status['qr'];
+                $this->whatsAppConnected = false;
+                $this->showWhatsAppModal = true;
+                $this->notify('Please scan the QR code to connect WhatsApp.', 'info');
+
+                return;
+            }
+
+            $this->notify($errMsg, 'danger');
+        }
+    }
+
+    public function openWhatsAppConnectModal()
+    {
+        $whatsAppService = app(WhatsAppService::class);
+        $status = $whatsAppService->getStatus();
+
+        $this->whatsAppConnected = (bool) ($status['connected'] ?? false);
+        $this->whatsAppQrCode = $status['qr'] ?? null;
+        $this->whatsAppStatusText = $status['running'] ? ($this->whatsAppConnected ? 'Connected' : 'Scan QR') : 'Bridge Offline';
+        $this->showWhatsAppModal = true;
+
+        if ($status['running'] && ! $this->whatsAppConnected) {
+            $whatsAppService->triggerConnect();
+            $status = $whatsAppService->getStatus();
+            $this->whatsAppQrCode = $status['qr'] ?? null;
+        }
+    }
+
+    public function checkWhatsAppConnection()
+    {
+        $whatsAppService = app(WhatsAppService::class);
+        $status = $whatsAppService->getStatus();
+
+        $this->whatsAppConnected = (bool) ($status['connected'] ?? false);
+        $this->whatsAppQrCode = $status['qr'] ?? null;
+
+        if ($this->whatsAppConnected && $this->showWhatsAppModal && empty($this->whatsAppRecipientPhone)) {
+            $this->showWhatsAppModal = false;
+            $this->notify('WhatsApp connected successfully!', 'success');
+        }
+    }
+
+    public function closeWhatsAppModal()
+    {
+        $this->showWhatsAppModal = false;
     }
 }

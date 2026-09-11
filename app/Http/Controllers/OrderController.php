@@ -6,6 +6,7 @@ use App\Models\Order;
 use App\Models\SaleReturn;
 use App\Services\Sales\OrderService;
 use App\Services\Sales\SaleReturnService;
+use App\Services\WhatsApp\WhatsAppService;
 use Exception;
 use Illuminate\Http\Request;
 
@@ -57,6 +58,31 @@ class OrderController extends Controller
             ->findOrFail($id);
 
         return view('orders.thermal', compact('order'));
+    }
+
+    public function sendWhatsApp(Request $request, int $id, WhatsAppService $whatsAppService)
+    {
+        $order = Order::with(['items.deal.items.product', 'payments', 'customer', 'table', 'rider', 'cashier', 'deliveryArea'])
+            ->findOrFail($id);
+
+        $phone = $request->input('phone', $order->customer_phone);
+
+        if (empty($phone)) {
+            return back()->with('error', 'Please provide a valid customer WhatsApp phone number.');
+        }
+
+        $result = $whatsAppService->sendReceipt($order, $phone);
+
+        if ($result['ok'] ?? false) {
+            return back()->with('success', 'Order receipt sent to customer via WhatsApp (+'.$result['recipient'].') successfully!');
+        }
+
+        $errorMsg = $result['error'] ?? 'Failed to send WhatsApp message.';
+        if (! empty($result['fallback_url'])) {
+            session()->flash('whatsapp_fallback_url', $result['fallback_url']);
+        }
+
+        return back()->with('error', $errorMsg);
     }
 
     // Sale Returns List

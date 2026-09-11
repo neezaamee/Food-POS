@@ -55,6 +55,12 @@
         <span class="d-none d-md-inline">Online</span>
       </span>
 
+      <!-- WhatsApp Quick Status & Connect -->
+      <button type="button" wire:click="openWhatsAppConnectModal" class="btn btn-outline-success btn-sm py-1 px-2 d-inline-flex align-items-center gap-1 text-nowrap" style="font-size: 0.75rem;" title="WhatsApp Receipt Status & Pair Device">
+        <i class="bi bi-whatsapp"></i>
+        <span class="d-none d-xl-inline">WhatsApp</span>
+      </button>
+
       <!-- Offline Sync Badge & Trigger -->
       <button type="button" id="posOfflineSyncBtn" onclick="PosOfflineEngine.syncNow()" class="btn btn-warning btn-sm py-1 px-2 d-none align-items-center gap-1 shadow-sm fw-bold text-nowrap" style="font-size: 0.75rem;" title="Click to sync offline orders to cloud">
         <i class="bi bi-cloud-arrow-up-fill"></i>
@@ -952,11 +958,45 @@
               <div>{{ \App\Models\SystemSetting::get('invoice_footer_note', 'Please visit again!') }}</div>
             </div>
           </div>
-          <div class="modal-footer no-print">
-            <button type="button" class="btn btn-secondary btn-sm" wire:click="closeReceiptModal">Close</button>
-            <button type="button" class="btn btn-primary btn-sm" onclick="window.print()">
-              <i class="bi bi-printer me-1"></i> Print Receipt
-            </button>
+          <div class="modal-footer no-print d-flex flex-column gap-2 p-2">
+            <!-- WhatsApp Receipt Dispatch Section -->
+            <div class="w-100 p-2 bg-light rounded border">
+              <div class="d-flex align-items-center justify-content-between mb-1">
+                <span class="small fw-bold text-success d-flex align-items-center gap-1">
+                  <i class="bi bi-whatsapp"></i> Customer WhatsApp Receipt
+                </span>
+                @if ($whatsAppFallbackUrl)
+                  <a href="{{ $whatsAppFallbackUrl }}" target="_blank" class="small text-decoration-none text-success fw-semibold">
+                    <i class="bi bi-box-arrow-up-right me-1"></i> Open via Web
+                  </a>
+                @endif
+              </div>
+              <div class="input-group input-group-sm">
+                <span class="input-group-text bg-white text-muted"><i class="bi bi-telephone"></i></span>
+                <input type="text" class="form-control" placeholder="Customer WhatsApp (e.g. 03001234567)" wire:model.defer="whatsAppRecipientPhone">
+                <button type="button" class="btn btn-success d-flex align-items-center gap-1" wire:click="sendWhatsAppReceipt" wire:loading.attr="disabled" wire:target="sendWhatsAppReceipt">
+                  <span wire:loading.remove wire:target="sendWhatsAppReceipt">
+                    <i class="bi bi-send-fill me-1"></i> Send
+                  </span>
+                  <span wire:loading wire:target="sendWhatsAppReceipt">
+                    <span class="spinner-border spinner-border-sm"></span> Sending...
+                  </span>
+                </button>
+              </div>
+            </div>
+
+            <!-- Modal Action Buttons -->
+            <div class="w-100 d-flex justify-content-between align-items-center mt-1">
+              <button type="button" class="btn btn-secondary btn-sm" wire:click="closeReceiptModal">Close</button>
+              <div class="d-flex gap-2">
+                <button type="button" class="btn btn-outline-success btn-sm" wire:click="openWhatsAppConnectModal" title="Check WhatsApp Connection / QR">
+                  <i class="bi bi-qr-code-scan me-1"></i> WhatsApp Status
+                </button>
+                <button type="button" class="btn btn-primary btn-sm" onclick="window.print()">
+                  <i class="bi bi-printer me-1"></i> Print Receipt
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -1292,6 +1332,77 @@
       </div>
     </div>
   </div>
+
+  <!-- WHATSAPP CONNECTION & QR PAIRING MODAL -->
+  @if ($showWhatsAppModal)
+    <div class="modal fade show d-block" tabindex="-1" style="background: rgba(0,0,0,0.75);" wire:click.self="closeWhatsAppModal" wire:poll.2500ms="checkWhatsAppConnection">
+      <div class="modal-dialog modal-dialog-centered" style="max-width: 440px;">
+        <div class="modal-content border-0 shadow">
+          <div class="modal-header py-2 bg-success text-white">
+            <h6 class="modal-title fw-bold mb-0 d-flex align-items-center gap-2">
+              <i class="bi bi-whatsapp"></i> WhatsApp Device Connection
+            </h6>
+            <button type="button" class="btn-close btn-close-white" wire:click="closeWhatsAppModal"></button>
+          </div>
+          <div class="modal-body p-4 text-center">
+            @if ($whatsAppConnected)
+              <div class="py-3">
+                <div class="d-inline-flex align-items-center justify-content-center bg-success bg-opacity-10 text-success rounded-circle mb-3" style="width: 70px; height: 70px;">
+                  <i class="bi bi-check-circle-fill fs-1"></i>
+                </div>
+                <h5 class="fw-bold text-success mb-1">WhatsApp Connected!</h5>
+                <p class="text-muted small mb-3">Your device is linked and ready to send digital receipts directly to customers.</p>
+                @if ($completedOrder)
+                  <div class="mt-3 p-3 bg-light rounded border text-start">
+                    <label class="form-label small fw-bold mb-1">Send receipt for Order #{{ $completedOrder->order_number }}:</label>
+                    <div class="input-group input-group-sm">
+                      <input type="text" class="form-control" placeholder="Customer WhatsApp Phone" wire:model.defer="whatsAppRecipientPhone">
+                      <button type="button" class="btn btn-success" wire:click="sendWhatsAppReceipt" wire:loading.attr="disabled" wire:target="sendWhatsAppReceipt">
+                        <span wire:loading.remove wire:target="sendWhatsAppReceipt"><i class="bi bi-send-fill me-1"></i> Send</span>
+                        <span wire:loading wire:target="sendWhatsAppReceipt"><span class="spinner-border spinner-border-sm"></span> Sending...</span>
+                      </button>
+                    </div>
+                  </div>
+                @endif
+              </div>
+            @elseif ($whatsAppQrCode)
+              <p class="small text-muted mb-2">Scan this QR code with WhatsApp on your phone to link your restaurant account:</p>
+              <div class="p-2 bg-white border rounded d-inline-block shadow-sm mb-3">
+                <img src="{{ $whatsAppQrCode }}" alt="WhatsApp QR Code" class="img-fluid" style="max-width: 250px; height: auto;">
+              </div>
+              <div class="text-start bg-light rounded p-2.5 small border" style="font-size: 12px;">
+                <strong>How to scan:</strong>
+                <ol class="mb-0 ps-3 mt-1 text-secondary">
+                  <li>Open <strong>WhatsApp</strong> on your phone</li>
+                  <li>Go to <strong>Linked Devices</strong> &rarr; <strong>Link a Device</strong></li>
+                  <li>Point camera at this QR code</li>
+                </ol>
+              </div>
+              <div class="small text-muted mt-2">
+                <span class="spinner-border spinner-border-sm text-success me-1"></span> Waiting for scan...
+              </div>
+            @else
+              <div class="py-4">
+                <div class="spinner-border text-success mb-3" role="status"></div>
+                <h6>Connecting to WhatsApp Bridge...</h6>
+                <p class="text-muted small mb-2">Checking service on port 3333...</p>
+                <div class="alert alert-light border small text-muted mt-3 mb-0 text-start">
+                  If service is not running, run in terminal: <br>
+                  <code class="user-select-all">php artisan whatsapp:serve</code>
+                </div>
+              </div>
+            @endif
+          </div>
+          <div class="modal-footer py-2">
+            <button type="button" class="btn btn-secondary btn-sm" wire:click="closeWhatsAppModal">Close</button>
+            <button type="button" class="btn btn-outline-success btn-sm" wire:click="openWhatsAppConnectModal">
+              <i class="bi bi-arrow-clockwise me-1"></i> Refresh QR
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  @endif
 </div>
 
 <style>

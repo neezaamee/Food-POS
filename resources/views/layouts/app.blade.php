@@ -388,6 +388,12 @@
           </a>
         </li>
         <li class="nav-item">
+          <a class="nav-link {{ request()->routeIs('admin.whatsapp.*') || request()->routeIs('whatsapp.*') ? 'active' : '' }}" href="{{ route('admin.whatsapp.index') }}" data-tooltip="WhatsApp Integration">
+            <i class="bi bi-whatsapp"></i>
+            <span>WhatsApp Integration</span>
+          </a>
+        </li>
+        <li class="nav-item">
           <a class="nav-link {{ request()->routeIs('audit-logs.*') ? 'active' : '' }}" href="{{ route('audit-logs.index') }}" data-tooltip="Audit Logs">
             <i class="ph-duotone ph-fingerprint"></i>
             <span>Audit Trail</span>

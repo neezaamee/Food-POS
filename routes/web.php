@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Admin\WhatsAppController;
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\Api\PosOfflineController;
 use App\Http\Controllers\AuthController;
@@ -54,6 +55,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/', [OrderController::class, 'index'])->name('index');
         Route::get('/{id}', [OrderController::class, 'show'])->name('show');
         Route::get('/{id}/thermal', [OrderController::class, 'thermal'])->name('thermal');
+        Route::post('/{id}/whatsapp', [OrderController::class, 'sendWhatsApp'])->name('whatsapp');
         Route::post('/{id}/return', [OrderController::class, 'processReturn'])->name('return.process');
         Route::post('/{id}/cancel', [OrderController::class, 'cancelOrder'])->name('cancel');
     });
@@ -186,6 +188,16 @@ Route::middleware('auth')->group(function () {
         Route::get('/fbr', [AdminController::class, 'fbr'])->name('admin.fbr');
         Route::post('/fbr', [AdminController::class, 'updateFbr'])->name('admin.fbr.update');
 
+        // WhatsApp Integration
+        Route::prefix('whatsapp')->name('admin.whatsapp.')->group(function () {
+            Route::get('/', [WhatsAppController::class, 'index'])->name('index');
+            Route::get('/status', [WhatsAppController::class, 'status'])->name('status');
+            Route::post('/reconnect', [WhatsAppController::class, 'reconnect'])->name('reconnect');
+            Route::post('/disconnect', [WhatsAppController::class, 'disconnect'])->name('disconnect');
+            Route::post('/test', [WhatsAppController::class, 'test'])->name('test');
+            Route::post('/settings', [WhatsAppController::class, 'updateSettings'])->name('settings');
+        });
+
         // Audit Trail
         Route::get('/audit-logs', [AdminController::class, 'auditLogs'])->name('admin.audit-logs');
     });
@@ -195,5 +207,6 @@ Route::middleware('auth')->group(function () {
     Route::get('/settings', [AdminController::class, 'settings'])->name('settings.index');
     Route::get('/users', [AdminController::class, 'users'])->name('users.index');
     Route::get('/fbr', [AdminController::class, 'fbr'])->name('fbr.index');
+    Route::get('/whatsapp', [WhatsAppController::class, 'index'])->name('whatsapp.index');
     Route::get('/audit-logs', [AdminController::class, 'auditLogs'])->name('audit-logs.index');
 });

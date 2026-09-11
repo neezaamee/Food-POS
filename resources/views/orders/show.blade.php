@@ -20,6 +20,9 @@
     <a href="{{ route('restaurant.kot.print', $order->id) }}" target="_blank" class="btn btn-outline-dark btn-sm px-3 py-2">
       <i class="bi bi-printer me-1"></i> Kitchen KOT
     </a>
+    <button type="button" class="btn btn-outline-success btn-sm px-3 py-2" data-bs-toggle="modal" data-bs-target="#whatsappModal">
+      <i class="bi bi-whatsapp me-1"></i> Send WhatsApp
+    </button>
     @php
       $isShiftClosed = $order->cashShift && ! $order->cashShift->isOpen();
       $canCancel = auth()->user() && auth()->user()->canCancelOrder();
@@ -401,6 +404,67 @@
   </div>
 </div>
 @endif
+
+<!-- WHATSAPP RECEIPT MODAL -->
+<div class="modal fade" id="whatsappModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered" style="max-width: 440px;">
+    <div class="modal-content border-0 shadow">
+      <form action="{{ route('orders.whatsapp', $order->id) }}" method="POST">
+        @csrf
+        <div class="modal-header py-2 bg-success text-white">
+          <h6 class="modal-title fw-bold mb-0 d-flex align-items-center gap-2">
+            <i class="bi bi-whatsapp"></i> Send Receipt via WhatsApp
+          </h6>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body p-4">
+          @if (session('whatsapp_fallback_url'))
+            <div class="alert alert-warning small border-0 shadow-sm mb-3">
+              <i class="bi bi-info-circle me-1"></i> WhatsApp background bridge was unavailable.
+              <div class="mt-2">
+                <a href="{{ session('whatsapp_fallback_url') }}" target="_blank" class="btn btn-sm btn-success fw-bold">
+                  <i class="bi bi-whatsapp me-1"></i> Open Directly in WhatsApp Web
+                </a>
+              </div>
+            </div>
+          @endif
+
+          <p class="text-muted small mb-3">Dispatch full order receipt with item breakdown and totals directly to the customer's WhatsApp number.</p>
+
+          <div class="mb-3">
+            <label class="form-label small fw-semibold">Customer Phone Number</label>
+            <div class="input-group">
+              <span class="input-group-text bg-light text-muted"><i class="bi bi-telephone"></i></span>
+              <input type="text" name="phone" class="form-control" value="{{ $order->customer_phone }}" placeholder="e.g. 03001234567 or 923001234567" required>
+            </div>
+            <div class="form-text small text-muted">Local format with leading 0 or international format accepted.</div>
+          </div>
+
+          <div class="p-3 bg-light rounded border small text-muted mb-0">
+            <div class="d-flex justify-content-between mb-1">
+              <span>Order #:</span>
+              <strong class="text-dark">{{ $order->order_number }}</strong>
+            </div>
+            <div class="d-flex justify-content-between mb-1">
+              <span>Customer:</span>
+              <span class="text-dark">{{ $order->customer_name ?? 'Walk-in Guest' }}</span>
+            </div>
+            <div class="d-flex justify-content-between">
+              <span>Grand Total:</span>
+              <strong class="text-success">Rs. {{ number_format($order->grand_total, 2) }}</strong>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer py-2">
+          <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Close</button>
+          <button type="submit" class="btn btn-success btn-sm px-4 fw-bold">
+            <i class="bi bi-send-fill me-1"></i> Send WhatsApp Receipt
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
 
 @push('scripts')
 <script>
