@@ -28,7 +28,7 @@ class TenantRegistrationController extends Controller
      */
     public function showRegistrationForm()
     {
-        $plans = Plan::where('is_active', true)->orderBy('price')->get();
+        $plans = Plan::where('is_active', true)->orderBy('price_monthly')->get();
 
         return view('saas.register', compact('plans'));
     }

@@ -174,7 +174,7 @@ class SaasAdminController extends Controller
      */
     public function plans()
     {
-        $plans = Plan::withCount('subscriptions')->orderBy('price')->get();
+        $plans = Plan::withCount('subscriptions')->orderBy('price_monthly')->get();
 
         return view('saas.admin.plans', compact('plans'));
     }
