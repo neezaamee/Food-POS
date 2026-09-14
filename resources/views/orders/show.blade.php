@@ -466,6 +466,162 @@
   </div>
 </div>
 
+@push('styles')
+<style>
+@media print {
+  @page {
+    size: A4 portrait;
+    margin: 10mm 12mm;
+  }
+
+  body, html {
+    background: #fff !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    font-size: 13px !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+    color-adjust: exact !important;
+  }
+
+  /* Hide navigation, headers, breadcrumbs, action buttons, modals */
+  .header,
+  .sidebar,
+  .footer,
+  .page-header,
+  .breadcrumb,
+  .no-print,
+  .modal,
+  .modal-backdrop,
+  .alert {
+    display: none !important;
+  }
+
+  /* Reset outer layout containers to 100% full width */
+  .main,
+  .main-content,
+  #main,
+  .content,
+  .container,
+  .container-fluid,
+  .row {
+    margin: 0 !important;
+    padding: 0 !important;
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+
+  .col-lg-10 {
+    width: 100% !important;
+    max-width: 100% !important;
+    flex: 0 0 100% !important;
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+
+  /* Invoice Card appearance - keep clean card border and padding */
+  .invoice-card {
+    border: 1px solid #e5e7eb !important;
+    border-radius: 8px !important;
+    box-shadow: none !important;
+    margin: 0 !important;
+    width: 100% !important;
+    background: #ffffff !important;
+    page-break-inside: auto;
+  }
+
+  .invoice-card .card-body {
+    padding: 24px !important;
+  }
+
+  /* Preserve table formatting and header backgrounds */
+  .table {
+    width: 100% !important;
+    margin-bottom: 1rem !important;
+    border-collapse: collapse !important;
+  }
+
+  .table thead.table-light th {
+    background-color: #f8f9fa !important;
+    color: #4b5563 !important;
+    font-weight: 600 !important;
+    border-bottom: 1px solid #e5e7eb !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  .table td, .table th {
+    border-color: #e5e7eb !important;
+  }
+
+  .table-borderless td,
+  .table-borderless th {
+    border: none !important;
+  }
+
+  /* Shaded summary boxes and badges */
+  .bg-light-subtle {
+    background-color: #f8f9fa !important;
+    border: 1px solid #e5e7eb !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  .badge.bg-success {
+    background-color: #198754 !important;
+    color: #ffffff !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  .badge.bg-warning {
+    background-color: #ffc107 !important;
+    color: #000000 !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  .badge.bg-danger {
+    background-color: #dc3545 !important;
+    color: #ffffff !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  .badge.bg-secondary {
+    background-color: #6c757d !important;
+    color: #ffffff !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  .border-primary {
+    border-color: #0d6efd !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  .text-primary {
+    color: #0d6efd !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  .text-success {
+    color: #198754 !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  .text-danger {
+    color: #dc3545 !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+}
+</style>
+@endpush
+
 @push('scripts')
 <script>
 function selectAllForReturn() {

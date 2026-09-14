@@ -5,16 +5,25 @@ namespace App\Http\Controllers\SuperAdmin;
 use App\Http\Controllers\Controller;
 use App\Models\Order;
 use App\Models\Plan;
+use App\Models\PlanFeature;
 use App\Models\Product;
 use App\Models\Subscription;
 use App\Models\Tenant;
+use App\Models\TenantFeatureOverride;
 use App\Models\User;
+use App\Services\SaaS\FeatureAccessService;
 use App\Services\SaaS\TenantContext;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
 
 class SaasAdminController extends Controller
 {
+    public function __construct(
+        protected FeatureAccessService $featureAccessService
+    ) {}
+
     /**
      * SaaS Super-Admin Platform Dashboard Overview
      */
@@ -25,6 +34,7 @@ class SaasAdminController extends Controller
             $activeTenants = Tenant::where('status', 'active')->count();
             $trialTenants = Tenant::where('status', 'trial')->count();
             $suspendedTenants = Tenant::where('status', 'suspended')->count();
+            $disabledTenants = Tenant::where('status', 'disabled')->count();
 
             $totalSubscriptions = Subscription::count();
             $activeSubscriptions = Subscription::where('status', 'active')->count();
@@ -38,7 +48,7 @@ class SaasAdminController extends Controller
                 ->get()
                 ->sum(fn ($sub) => $sub->plan?->price_monthly ?? 0);
 
-            $recentTenants = Tenant::with(['subscriptions' => fn ($q) => $q->latest()->with('plan')])
+            $recentTenants = Tenant::with(['subscriptions' => fn ($q) => $q->latest()->with('plan'), 'owners'])
                 ->latest()
                 ->take(8)
                 ->get();
@@ -53,6 +63,7 @@ class SaasAdminController extends Controller
                 'activeTenants',
                 'trialTenants',
                 'suspendedTenants',
+                'disabledTenants',
                 'totalSubscriptions',
                 'activeSubscriptions',
                 'totalOrders',
@@ -70,10 +81,17 @@ class SaasAdminController extends Controller
     public function tenants(Request $request)
     {
         return TenantContext::instance()->withoutTenant(function () use ($request) {
-            $query = Tenant::with(['subscriptions' => fn ($q) => $q->latest()->with('plan')]);
+            $query = Tenant::with([
+                'subscriptions' => fn ($q) => $q->latest()->with('plan'),
+                'owners',
+            ]);
 
             if ($request->filled('status')) {
                 $query->where('status', $request->status);
+            }
+
+            if ($request->filled('business_type')) {
+                $query->where('business_type', $request->business_type);
             }
 
             if ($request->filled('search')) {
@@ -82,7 +100,8 @@ class SaasAdminController extends Controller
                     $q->where('name', 'like', "%{$search}%")
                         ->orWhere('slug', 'like', "%{$search}%")
                         ->orWhere('email', 'like', "%{$search}%")
-                        ->orWhere('phone', 'like', "%{$search}%");
+                        ->orWhere('phone', 'like', "%{$search}%")
+                        ->orWhere('city', 'like', "%{$search}%");
                 });
             }
 
@@ -94,12 +113,170 @@ class SaasAdminController extends Controller
     }
 
     /**
-     * Detailed Tenant View
+     * Store New Business (Tenant) with Business Owner and Plan in one transaction
+     */
+    public function storeTenant(Request $request)
+    {
+        $validated = $request->validate([
+            // Business Details
+            'name' => 'required|string|max:150',
+            'business_type' => 'required|string|in:restaurant,cafe,fast_food,bakery,food_truck,cloud_kitchen,ice_cream,juice_bar,other',
+            'email' => 'nullable|email|max:150',
+            'phone' => 'nullable|string|max:50',
+            'city' => 'nullable|string|max:100',
+            'province' => 'nullable|string|max:100',
+            'address' => 'nullable|string|max:255',
+            'currency' => 'required|string|max:10',
+            'plan_id' => 'required|exists:plans,id',
+            'status' => 'required|in:active,trial,suspended',
+
+            // Owner Account Details
+            'owner_name' => 'required|string|max:150',
+            'owner_email' => 'required|email|max:150|unique:users,email',
+            'owner_phone' => 'nullable|string|max:50',
+            'owner_password' => 'required|string|min:6',
+        ]);
+
+        return DB::transaction(function () use ($validated) {
+            // Generate unique slug
+            $baseSlug = Str::slug($validated['name']);
+            $slug = $baseSlug;
+            $counter = 1;
+            while (Tenant::where('slug', $slug)->exists()) {
+                $slug = $baseSlug.'-'.$counter++;
+            }
+
+            $isTrial = $validated['status'] === 'trial';
+            $trialEndsAt = $isTrial ? now()->addDays(14) : null;
+
+            // 1. Create Tenant
+            $tenant = Tenant::create([
+                'name' => $validated['name'],
+                'slug' => $slug,
+                'business_type' => $validated['business_type'],
+                'legal_name' => $validated['name'],
+                'phone' => $validated['phone'] ?? null,
+                'email' => $validated['email'] ?? $validated['owner_email'],
+                'city' => $validated['city'] ?? null,
+                'province' => $validated['province'] ?? null,
+                'address' => $validated['address'] ?? null,
+                'currency' => $validated['currency'],
+                'timezone' => 'Asia/Karachi',
+                'status' => $validated['status'],
+                'trial_ends_at' => $trialEndsAt,
+                'is_setup_completed' => true,
+            ]);
+
+            // 2. Create Owner User
+            $owner = User::create([
+                'tenant_id' => $tenant->id,
+                'name' => $validated['owner_name'],
+                'email' => $validated['owner_email'],
+                'phone' => $validated['owner_phone'] ?? null,
+                'password' => Hash::make($validated['owner_password']),
+                'role' => 'owner',
+                'status' => 'active',
+            ]);
+
+            // 3. Link via tenant_owners pivot
+            $tenant->owners()->attach($owner->id, ['is_primary' => true]);
+
+            // 4. Assign Plan Subscription
+            $plan = Plan::findOrFail($validated['plan_id']);
+            $startsAt = now();
+            $endsAt = $isTrial ? now()->addDays(14) : now()->addMonth();
+
+            Subscription::create([
+                'tenant_id' => $tenant->id,
+                'plan_id' => $plan->id,
+                'status' => $isTrial ? 'trial' : 'active',
+                'starts_at' => $startsAt,
+                'ends_at' => $endsAt,
+                'trial_ends_at' => $trialEndsAt,
+            ]);
+
+            return redirect()->route('saas.tenants.show', $tenant)
+                ->with('success', "Business '{$tenant->name}' created successfully with Owner '{$owner->name}'.");
+        });
+    }
+
+    /**
+     * Platform Owners Directory
+     */
+    public function owners(Request $request)
+    {
+        return TenantContext::instance()->withoutTenant(function () use ($request) {
+            $query = User::where('role', 'owner')
+                ->orWhereHas('ownedTenants')
+                ->with(['ownedTenants', 'tenant']);
+
+            if ($request->filled('search')) {
+                $search = $request->search;
+                $query->where(function ($q) use ($search) {
+                    $q->where('name', 'like', "%{$search}%")
+                        ->orWhere('email', 'like', "%{$search}%")
+                        ->orWhere('phone', 'like', "%{$search}%");
+                });
+            }
+
+            if ($request->filled('status')) {
+                $query->where('status', $request->status);
+            }
+
+            $owners = $query->latest()->paginate(15)->withQueryString();
+            $allTenants = Tenant::orderBy('name')->get();
+
+            return view('saas.admin.owners', compact('owners', 'allTenants'));
+        });
+    }
+
+    /**
+     * Store New Owner and Assign to Business
+     */
+    public function storeOwner(Request $request)
+    {
+        $validated = $request->validate([
+            'tenant_id' => 'required|exists:tenants,id',
+            'name' => 'required|string|max:150',
+            'email' => 'required|email|max:150|unique:users,email',
+            'phone' => 'nullable|string|max:50',
+            'password' => 'required|string|min:6',
+            'is_primary' => 'nullable|boolean',
+        ]);
+
+        $tenant = Tenant::findOrFail($validated['tenant_id']);
+
+        $owner = User::create([
+            'tenant_id' => $tenant->id,
+            'name' => $validated['name'],
+            'email' => $validated['email'],
+            'phone' => $validated['phone'] ?? null,
+            'password' => Hash::make($validated['password']),
+            'role' => 'owner',
+            'status' => 'active',
+        ]);
+
+        $isPrimary = $request->boolean('is_primary', false);
+
+        if ($isPrimary) {
+            // Remove primary flag from existing owners
+            DB::table('tenant_owners')->where('tenant_id', $tenant->id)->update(['is_primary' => false]);
+        }
+
+        $tenant->owners()->syncWithoutDetaching([
+            $owner->id => ['is_primary' => $isPrimary],
+        ]);
+
+        return back()->with('success', "Owner '{$owner->name}' successfully added and assigned to {$tenant->name}.");
+    }
+
+    /**
+     * Detailed Tenant View with Quota, Plan, Overrides, and Owners
      */
     public function tenantDetails(Tenant $tenant)
     {
         return TenantContext::instance()->withoutTenant(function () use ($tenant) {
-            $tenant->load(['subscriptions.plan', 'subscriptions.invoices']);
+            $tenant->load(['subscriptions.plan', 'subscriptions.invoices', 'owners', 'featureOverrides']);
 
             $users = User::withoutGlobalScopes()->where('tenant_id', $tenant->id)->get();
             $productsCount = Product::withoutGlobalScopes()->where('tenant_id', $tenant->id)->count();
@@ -109,6 +286,11 @@ class SaasAdminController extends Controller
             $currentSubscription = $tenant->activeSubscription ?? $tenant->subscriptions()->latest()->first();
             $allPlans = Plan::where('is_active', true)->get();
 
+            // Quota usage & effective feature statuses
+            $quotaUsage = $this->featureAccessService->getQuotaUsage($tenant);
+            $effectiveFeatures = $this->featureAccessService->getEffectiveFeatures($tenant);
+            $allFeatures = PlanFeature::where('is_active', true)->orderBy('group')->orderBy('id')->get();
+
             return view('saas.admin.tenant_details', compact(
                 'tenant',
                 'users',
@@ -116,23 +298,63 @@ class SaasAdminController extends Controller
                 'ordersCount',
                 'salesTotal',
                 'currentSubscription',
-                'allPlans'
+                'allPlans',
+                'quotaUsage',
+                'effectiveFeatures',
+                'allFeatures'
             ));
         });
     }
 
     /**
-     * Update Tenant Status (Active / Suspended / Trial)
+     * Update Tenant Status (Active / Suspended / Disabled / Trial)
      */
     public function updateTenantStatus(Request $request, Tenant $tenant)
     {
         $validated = $request->validate([
-            'status' => 'required|in:active,suspended,trial,cancelled',
+            'status' => 'required|in:active,suspended,disabled,trial',
+            'reason' => 'nullable|string|max:255',
         ]);
 
-        $tenant->update(['status' => $validated['status']]);
+        $status = $validated['status'];
+        $disabledAt = $status === 'disabled' ? now() : null;
 
-        return back()->with('success', "Tenant status updated to '{$validated['status']}'.");
+        $tenant->update([
+            'status' => $status,
+            'disabled_at' => $disabledAt,
+        ]);
+
+        $statusLabel = ucfirst($status);
+
+        return back()->with('success', "Business '{$tenant->name}' status updated to {$statusLabel}.");
+    }
+
+    /**
+     * Update Tenant Feature Overrides (Super Admin Granular Feature Switch)
+     */
+    public function updateTenantFeatures(Request $request, Tenant $tenant)
+    {
+        $overrides = $request->input('overrides', []); // array of feature_key => 'enable' | 'disable' | 'inherit'
+
+        foreach ($overrides as $featureKey => $action) {
+            if ($action === 'inherit') {
+                TenantFeatureOverride::where('tenant_id', $tenant->id)
+                    ->where('feature_key', $featureKey)
+                    ->delete();
+            } elseif ($action === 'enable') {
+                TenantFeatureOverride::updateOrCreate(
+                    ['tenant_id' => $tenant->id, 'feature_key' => $featureKey],
+                    ['is_enabled' => true, 'notes' => 'Enabled by Super Admin override']
+                );
+            } elseif ($action === 'disable') {
+                TenantFeatureOverride::updateOrCreate(
+                    ['tenant_id' => $tenant->id, 'feature_key' => $featureKey],
+                    ['is_enabled' => false, 'notes' => 'Disabled by Super Admin override']
+                );
+            }
+        }
+
+        return back()->with('success', "Feature overrides for '{$tenant->name}' saved successfully.");
     }
 
     /**
@@ -153,7 +375,9 @@ class SaasAdminController extends Controller
             ? now()->addDays((int) $validated['extend_days'])
             : ($plan->billing_cycle === 'yearly' ? now()->addYear() : now()->addMonth());
 
-        $trialEndsAt = $validated['status'] === 'trial' ? ($validated['extend_days'] ? now()->addDays((int) $validated['extend_days']) : now()->addDays(14)) : null;
+        $trialEndsAt = $validated['status'] === 'trial'
+            ? ($validated['extend_days'] ? now()->addDays((int) $validated['extend_days']) : now()->addDays(14))
+            : null;
 
         Subscription::updateOrCreate(
             ['tenant_id' => $tenant->id],
@@ -175,8 +399,9 @@ class SaasAdminController extends Controller
     public function plans()
     {
         $plans = Plan::withCount('subscriptions')->orderBy('price_monthly')->get();
+        $allFeatures = PlanFeature::where('is_active', true)->orderBy('group')->orderBy('id')->get();
 
-        return view('saas.admin.plans', compact('plans'));
+        return view('saas.admin.plans', compact('plans', 'allFeatures'));
     }
 
     /**
@@ -230,6 +455,7 @@ class SaasAdminController extends Controller
             'max_tables' => 'nullable|integer|min:0',
             'features' => 'nullable|array',
             'description' => 'nullable|string|max:500',
+            'is_active' => 'nullable|boolean',
         ]);
 
         $data = [
@@ -248,6 +474,17 @@ class SaasAdminController extends Controller
         $plan->update($data);
 
         return back()->with('success', "Plan '{$plan->name}' updated successfully.");
+    }
+
+    /**
+     * Toggle Plan Active / Disabled Status
+     */
+    public function togglePlanStatus(Plan $plan)
+    {
+        $plan->update(['is_active' => ! $plan->is_active]);
+        $status = $plan->is_active ? 'enabled' : 'disabled';
+
+        return back()->with('success', "Plan '{$plan->name}' has been {$status}.");
     }
 
     /**

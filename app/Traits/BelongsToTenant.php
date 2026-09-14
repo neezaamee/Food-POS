@@ -22,8 +22,16 @@ trait BelongsToTenant
                 $context = app(TenantContext::class);
                 if ($context->hasTenant()) {
                     $model->tenant_id = $context->getTenantId();
-                } elseif (auth()->check() && auth()->user()->tenant_id) {
-                    $model->tenant_id = auth()->user()->tenant_id;
+                } elseif (auth()->check() && auth()->user()->getActiveTenantId()) {
+                    $model->tenant_id = auth()->user()->getActiveTenantId();
+                } elseif (! empty($model->order_id) && method_exists($model, 'order') && $model->order) {
+                    $model->tenant_id = $model->order->tenant_id;
+                } elseif (! empty($model->journal_entry_id) && method_exists($model, 'entry') && $model->entry) {
+                    $model->tenant_id = $model->entry->tenant_id;
+                } elseif (! empty($model->purchase_id) && method_exists($model, 'purchase') && $model->purchase) {
+                    $model->tenant_id = $model->purchase->tenant_id;
+                } elseif (! empty($model->cash_shift_id) && method_exists($model, 'shift') && $model->shift) {
+                    $model->tenant_id = $model->shift->tenant_id;
                 } else {
                     $model->tenant_id = 1;
                 }

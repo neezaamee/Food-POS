@@ -122,7 +122,7 @@ Route::middleware('auth')->group(function () {
     });
 
     // Inventory & Purchasing
-    Route::prefix('inventory')->name('inventory.')->group(function () {
+    Route::prefix('inventory')->name('inventory.')->middleware(['feature:inventory.management'])->group(function () {
         Route::get('/overview', [InventoryController::class, 'overview'])->name('overview');
         Route::get('/ledger', [InventoryController::class, 'ledger'])->name('ledger');
         Route::get('/adjustments', [InventoryController::class, 'adjustments'])->name('adjustments');
@@ -136,7 +136,7 @@ Route::middleware('auth')->group(function () {
     });
 
     // Finance & Double-Entry Accounting
-    Route::prefix('finance')->name('finance.')->group(function () {
+    Route::prefix('finance')->name('finance.')->middleware(['feature:accounting.ledger'])->group(function () {
         Route::get('/chart-of-accounts', [FinanceController::class, 'chartOfAccounts'])->name('chart-of-accounts');
         Route::post('/chart-of-accounts', [FinanceController::class, 'storeAccount'])->name('chart-of-accounts.store');
         Route::get('/receipts', [FinanceController::class, 'receipts'])->name('receipts');
@@ -163,7 +163,7 @@ Route::middleware('auth')->group(function () {
     });
 
     // Business & Financial Analytics Reports
-    Route::prefix('reports')->name('reports.')->group(function () {
+    Route::prefix('reports')->name('reports.')->middleware(['feature:reports.advanced'])->group(function () {
         Route::get('/daily-sales', [ReportController::class, 'dailySales'])->name('daily-sales');
         Route::get('/shift-sales', [ReportController::class, 'shiftSales'])->name('shift-sales');
         Route::get('/sales', [ReportController::class, 'sales'])->name('sales');
@@ -179,22 +179,21 @@ Route::middleware('auth')->group(function () {
         // Users & Roles
         Route::get('/users', [AdminController::class, 'users'])->name('admin.users');
         Route::post('/users', [AdminController::class, 'storeUser'])->name('admin.users.store');
-        Route::put('/users/{user}', [AdminController::class, 'updateUser'])->name('admin.users.update');
+        Route::put('/users/{id}', [AdminController::class, 'updateUser'])->name('admin.users.update');
+        Route::delete('/users/{id}', [AdminController::class, 'destroyUser'])->name('admin.users.destroy');
 
-        // Profile
+        // Profile & Store Settings
         Route::get('/profile', [AdminController::class, 'profile'])->name('admin.profile');
-        Route::put('/profile', [AdminController::class, 'updateProfile'])->name('admin.profile.update');
-
-        // System Settings
+        Route::post('/profile', [AdminController::class, 'updateProfile'])->name('admin.profile.update');
         Route::get('/settings', [AdminController::class, 'settings'])->name('admin.settings');
         Route::post('/settings', [AdminController::class, 'updateSettings'])->name('admin.settings.update');
 
         // FBR Digital Invoicing
-        Route::get('/fbr', [AdminController::class, 'fbr'])->name('admin.fbr');
-        Route::post('/fbr', [AdminController::class, 'updateFbr'])->name('admin.fbr.update');
+        Route::get('/fbr', [AdminController::class, 'fbr'])->middleware(['feature:compliance.fbr'])->name('admin.fbr');
+        Route::post('/fbr', [AdminController::class, 'updateFbr'])->middleware(['feature:compliance.fbr'])->name('admin.fbr.update');
 
         // WhatsApp Integration
-        Route::prefix('whatsapp')->name('admin.whatsapp.')->group(function () {
+        Route::prefix('whatsapp')->name('admin.whatsapp.')->middleware(['feature:marketing.whatsapp'])->group(function () {
             Route::get('/', [WhatsAppController::class, 'index'])->name('index');
             Route::get('/status', [WhatsAppController::class, 'status'])->name('status');
             Route::post('/reconnect', [WhatsAppController::class, 'reconnect'])->name('reconnect');
@@ -219,15 +218,22 @@ Route::middleware('auth')->group(function () {
     Route::middleware(['super_admin'])->prefix('saas-admin')->name('saas.')->group(function () {
         Route::get('/', [SaasAdminController::class, 'dashboard'])->name('dashboard');
         Route::get('/tenants', [SaasAdminController::class, 'tenants'])->name('tenants.index');
+        Route::post('/tenants', [SaasAdminController::class, 'storeTenant'])->name('tenants.store');
         Route::get('/tenants/{tenant}', [SaasAdminController::class, 'tenantDetails'])->name('tenants.show');
         Route::patch('/tenants/{tenant}/status', [SaasAdminController::class, 'updateTenantStatus'])->name('tenants.status');
+        Route::post('/tenants/{tenant}/features', [SaasAdminController::class, 'updateTenantFeatures'])->name('tenants.features');
         Route::patch('/tenants/{tenant}/plan', [SaasAdminController::class, 'updateTenantPlan'])->name('tenants.plan');
         Route::get('/tenants/{tenant}/impersonate', [SaasAdminController::class, 'impersonate'])->name('tenants.impersonate');
         Route::get('/exit-impersonation', [SaasAdminController::class, 'exitImpersonation'])->name('exit-impersonation');
+
+        // Owners Directory
+        Route::get('/owners', [SaasAdminController::class, 'owners'])->name('owners.index');
+        Route::post('/owners', [SaasAdminController::class, 'storeOwner'])->name('owners.store');
 
         // Plans & Features
         Route::get('/plans', [SaasAdminController::class, 'plans'])->name('plans.index');
         Route::post('/plans', [SaasAdminController::class, 'storePlan'])->name('plans.store');
         Route::put('/plans/{plan}', [SaasAdminController::class, 'updatePlan'])->name('plans.update');
+        Route::post('/plans/{plan}/toggle', [SaasAdminController::class, 'togglePlanStatus'])->name('plans.toggle');
     });
 });

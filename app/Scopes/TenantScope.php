@@ -17,8 +17,8 @@ class TenantScope implements Scope
     {
         if (TenantContext::hasTenant()) {
             $builder->where($model->getTable().'.tenant_id', TenantContext::getTenantId());
-        } elseif (Auth::check() && Auth::user()->tenant_id && ! TenantContext::instance()->isBypassingTenant()) {
-            $builder->where($model->getTable().'.tenant_id', Auth::user()->tenant_id);
+        } elseif (Auth::check() && Auth::user()->getActiveTenantId() && ! TenantContext::instance()->isBypassingTenant()) {
+            $builder->where($model->getTable().'.tenant_id', Auth::user()->getActiveTenantId());
         }
     }
 }

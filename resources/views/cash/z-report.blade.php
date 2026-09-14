@@ -5,8 +5,14 @@
   <title>Z-Report - {{ $dayClose->business_date->format('Y-m-d') }} - Food Point POS</title>
   <style>
     @page {
-      margin: 5mm;
+      margin: 0;
       size: 80mm auto;
+    }
+    * {
+      -webkit-print-color-adjust: exact !important;
+      print-color-adjust: exact !important;
+      color-adjust: exact !important;
+      box-sizing: border-box;
     }
     body {
       font-family: 'Courier New', Courier, monospace;

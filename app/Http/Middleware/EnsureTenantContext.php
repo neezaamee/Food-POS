@@ -20,28 +20,31 @@ class EnsureTenantContext
             $user = Auth::user();
             $context = app(TenantContext::class);
 
-            // 1. Super-admin impersonation check
-            if ($user->role === 'super-admin' || empty($user->tenant_id)) {
+            // 1. Super-admin context handling
+            if ($user->isSuperAdmin()) {
                 if (session()->has('impersonated_tenant_id')) {
                     $impersonated = Tenant::find(session('impersonated_tenant_id'));
                     if ($impersonated) {
                         $context->setTenant($impersonated);
                     }
+                } elseif ($request->is('saas-admin*')) {
+                    // SaaS platform admin views cross-tenant data without tenant filter
+                    $context->setTenant(null);
                 } else {
-                    // Default super admin to their own tenant or Tenant 1 for seamless POS operations
+                    // Default super admin in store POS view to their own tenant or Tenant 1
                     $context->setTenant($user->tenant ?: Tenant::find(1));
                 }
             } else {
-                // 2. Standard tenant user
-                $tenant = $user->tenant;
+                // 2. Business Owner or Store Staff
+                $tenant = $user->tenant ?? $user->ownedTenants()->first();
 
                 if (! $tenant) {
                     Auth::logout();
 
-                    return redirect()->route('login')->withErrors(['email' => 'Your account is not associated with an active food point/tenant.']);
+                    return redirect()->route('login')->withErrors(['email' => 'Your account is not associated with an active business.']);
                 }
 
-                if ($tenant->isSuspended()) {
+                if ($tenant->isSuspended() || $tenant->isDisabled()) {
                     return response()->view('saas.suspended', ['tenant' => $tenant], 403);
                 }
 

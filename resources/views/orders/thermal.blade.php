@@ -8,15 +8,41 @@
       margin: 0;
       size: 80mm auto;
     }
+    * {
+      -webkit-print-color-adjust: exact !important;
+      print-color-adjust: exact !important;
+      color-adjust: exact !important;
+      box-sizing: border-box;
+    }
     body {
       font-family: 'Courier New', Courier, monospace;
       font-size: 13px;
       line-height: 1.3;
       margin: 0;
-      padding: 10px;
+      padding: 24px 10px;
       color: #000;
+      background: #f1f5f9;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-height: 100vh;
+    }
+    .receipt-paper {
       width: 80mm;
-      box-sizing: border-box;
+      background: #fff;
+      padding: 12px 14px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.12);
+      border: 1px solid #e2e8f0;
+      border-radius: 4px;
+    }
+    img.receipt-logo {
+      display: block;
+      margin: 0 auto 6px auto;
+      max-height: 52px;
+      max-width: 150px;
+      object-fit: contain;
+      image-rendering: -webkit-optimize-contrast;
+      image-rendering: crisp-edges;
     }
     .text-center { text-align: center; }
     .text-end { text-align: right; }
@@ -27,19 +53,59 @@
     .my-1 { margin-top: 4px; margin-bottom: 4px; }
     .my-2 { margin-top: 8px; margin-bottom: 8px; }
     .py-1 { padding-top: 4px; padding-bottom: 4px; }
-    table { width: 100%; border-collapse: collapse; }
+    table { width: 100%; border-collapse: collapse; table-layout: fixed; }
     th, td { font-size: 12px; }
-    .no-print { display: block; margin-bottom: 10px; }
+    .no-print {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      margin-bottom: 16px;
+      width: 80mm;
+    }
+    .btn-action {
+      font-family: system-ui, -apple-system, sans-serif;
+      font-size: 13px;
+      font-weight: 600;
+      padding: 7px 18px;
+      border-radius: 6px;
+      cursor: pointer;
+      border: none;
+      transition: opacity 0.15s;
+    }
+    .btn-action:hover { opacity: 0.9; }
+    .btn-primary { background: #0d6efd; color: #fff; }
+    .btn-secondary { background: #64748b; color: #fff; }
+
     @media print {
-      .no-print { display: none; }
+      body {
+        background: #fff !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        width: 80mm !important;
+        display: block !important;
+      }
+      .receipt-paper {
+        width: 80mm !important;
+        box-shadow: none !important;
+        border: none !important;
+        border-radius: 0 !important;
+        padding: 4mm 4mm !important;
+        margin: 0 !important;
+      }
+      .no-print {
+        display: none !important;
+      }
     }
   </style>
 </head>
 <body onload="window.print()">
-  <div class="no-print text-center">
-    <button onclick="window.print()" style="padding: 6px 16px; font-weight: bold; cursor: pointer;">Print Receipt</button>
-    <button onclick="window.close()" style="padding: 6px 14px; margin-left: 8px; cursor: pointer;">Close (Esc)</button>
+  <div class="no-print">
+    <button onclick="window.print()" class="btn-action btn-primary">🖨️ Print Receipt</button>
+    <button onclick="window.close()" class="btn-action btn-secondary">✕ Close (Esc)</button>
   </div>
+
+  <div class="receipt-paper">
 
   @php
     $currency = \App\Models\SystemSetting::get('currency', 'Rs.');
@@ -53,7 +119,7 @@
   @endphp
 
   <div class="text-center">
-    <img src="{{ \App\Models\SystemSetting::logoUrl() }}" style="max-height: 44px; max-width: 140px; object-fit: contain; margin-bottom: 4px;" alt="{{ $restName }}"><br>
+    <img src="{{ \App\Models\SystemSetting::logoUrl() }}" class="receipt-logo" alt="{{ $restName }}"><br>
     <h2 style="margin: 0; font-size: 17px; text-transform: uppercase;">{{ $restName }}</h2>
     @if ($tagline)
       <div style="font-size: 11px;">{{ $tagline }}</div>
@@ -224,6 +290,8 @@
     @endif
     <div>{{ $footerNote }}</div>
   </div>
+  </div> <!-- .receipt-paper -->
+
   <script>
     window.addEventListener('keydown', function (e) {
       if (e.key === 'Escape') {

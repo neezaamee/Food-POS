@@ -89,6 +89,46 @@
       max-height: 1rem !important;
       display: inline-block !important;
     }
+
+    /* Universal Print Styles for App Layout */
+    @media print {
+      *,
+      *::before,
+      *::after {
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+        color-adjust: exact !important;
+      }
+
+      body {
+        background: #ffffff !important;
+        margin: 0 !important;
+        padding: 0 !important;
+      }
+
+      .header,
+      .sidebar,
+      .footer,
+      .no-print,
+      .btn:not(.print-preserve),
+      .dropdown-menu,
+      .toast-container,
+      .sidebar-toggle,
+      .breadcrumb {
+        display: none !important;
+      }
+
+      .main,
+      .main-content,
+      #main,
+      .content {
+        margin: 0 !important;
+        margin-left: 0 !important;
+        padding: 0 !important;
+        width: 100% !important;
+        max-width: 100% !important;
+      }
+    }
   </style>
 
   @livewireStyles
@@ -252,7 +292,32 @@
     <!-- Sidebar Navigation -->
     <nav class="sidebar-nav">
       <ul class="nav-menu">
+        @php
+            $isSuperAdmin = auth()->user()?->isSuperAdmin() || empty(auth()->user()?->tenant_id);
+            $currentTenant = \App\Services\SaaS\TenantContext::current();
+            $featureService = app(\App\Services\SaaS\FeatureAccessService::class);
+        @endphp
+
+        @if($isSuperAdmin)
+        <!-- SaaS Platform Super Admin (Placed Prominently) -->
+        <li class="nav-heading"><span>SaaS Administration</span></li>
+        <li class="nav-item has-submenu {{ request()->routeIs('saas.*') ? 'open' : '' }}">
+          <a class="nav-link {{ request()->routeIs('saas.*') ? 'active' : '' }}" href="#" aria-expanded="{{ request()->routeIs('saas.*') ? 'true' : 'false' }}" data-tooltip="SaaS Platform">
+            <i class="ph-duotone ph-crown text-warning"></i>
+            <span>SaaS Platform</span>
+            <i class="ph-duotone ph-caret-down nav-arrow"></i>
+          </a>
+          <ul class="nav-submenu">
+            <li><a class="nav-link {{ request()->routeIs('saas.dashboard') ? 'active' : '' }}" href="{{ route('saas.dashboard') }}"><i class="ph-duotone ph-gauge me-1 text-warning"></i> Platform Overview</a></li>
+            <li><a class="nav-link {{ request()->routeIs('saas.tenants*') ? 'active' : '' }}" href="{{ route('saas.tenants.index') }}"><i class="ph-duotone ph-buildings me-1 text-primary"></i> Businesses / Tenants</a></li>
+            <li><a class="nav-link {{ request()->routeIs('saas.owners*') ? 'active' : '' }}" href="{{ route('saas.owners.index') }}"><i class="ph-duotone ph-users-three me-1 text-info"></i> Business Owners</a></li>
+            <li><a class="nav-link {{ request()->routeIs('saas.plans*') ? 'active' : '' }}" href="{{ route('saas.plans.index') }}"><i class="ph-duotone ph-credit-card me-1 text-success"></i> Plans & Features</a></li>
+          </ul>
+        </li>
+        @endif
+
         <!-- Dashboard -->
+        <li class="nav-heading"><span>Main Store</span></li>
         <li class="nav-item">
           <a class="nav-link {{ request()->routeIs('dashboard') ? 'active' : '' }}" href="{{ route('dashboard') }}" data-tooltip="Dashboard">
             <i class="ph-duotone ph-squares-four"></i>
@@ -292,6 +357,7 @@
           </ul>
         </li>
 
+        @if($isSuperAdmin || $featureService->allows($currentTenant, 'pos.dine_in'))
         <!-- Restaurant Operations -->
         <li class="nav-heading"><span>Restaurant</span></li>
         <li class="nav-item has-submenu {{ request()->routeIs('restaurant.*') ? 'open' : '' }}">
@@ -303,10 +369,13 @@
           <ul class="nav-submenu">
             <li><a class="nav-link {{ request()->routeIs('restaurant.tables') ? 'active' : '' }}" href="{{ route('restaurant.tables') }}">Tables & Sections</a></li>
             <li><a class="nav-link {{ request()->routeIs('restaurant.kitchen') ? 'active' : '' }}" href="{{ route('restaurant.kitchen') }}">Kitchen Display (KOT)</a></li>
+            @if($isSuperAdmin || $featureService->allows($currentTenant, 'pos.delivery'))
             <li><a class="nav-link {{ request()->routeIs('restaurant.delivery') ? 'active' : '' }}" href="{{ route('restaurant.delivery') }}">Delivery Areas</a></li>
             <li><a class="nav-link {{ request()->routeIs('restaurant.riders') ? 'active' : '' }}" href="{{ route('restaurant.riders') }}">Delivery Riders</a></li>
+            @endif
           </ul>
         </li>
+        @endif
 
         <!-- Catalog / Resources -->
         <li class="nav-heading"><span>Catalog & Resources</span></li>
@@ -326,6 +395,7 @@
           </ul>
         </li>
 
+        @if($isSuperAdmin || $featureService->allows($currentTenant, 'inventory.management'))
         <!-- Inventory -->
         <li class="nav-heading"><span>Inventory</span></li>
         <li class="nav-item has-submenu {{ request()->routeIs('inventory.*') ? 'open' : '' }}">
@@ -341,7 +411,9 @@
             <li><a class="nav-link {{ request()->routeIs('inventory.purchases') ? 'active' : '' }}" href="{{ route('inventory.purchases') }}">Purchases</a></li>
           </ul>
         </li>
+        @endif
 
+        @if($isSuperAdmin || $featureService->allows($currentTenant, 'accounting.ledger'))
         <!-- Finance & Accounting -->
         <li class="nav-heading"><span>Finance & Accounting</span></li>
         <li class="nav-item has-submenu {{ request()->routeIs('finance.*') ? 'open' : '' }}">
@@ -359,7 +431,9 @@
             <li><a class="nav-link {{ request()->routeIs('finance.trial-balance') ? 'active' : '' }}" href="{{ route('finance.trial-balance') }}">Trial Balance</a></li>
           </ul>
         </li>
+        @endif
 
+        @if($isSuperAdmin || $featureService->allows($currentTenant, 'reports.sales'))
         <!-- Reports -->
         <li class="nav-heading"><span>Reports</span></li>
         <li class="nav-item has-submenu {{ request()->routeIs('reports.*') ? 'open' : '' }}">
@@ -379,6 +453,7 @@
             <li><a class="nav-link {{ request()->routeIs('reports.customer-ledger') ? 'active' : '' }}" href="{{ route('reports.customer-ledger') }}">Customer Ledger</a></li>
           </ul>
         </li>
+        @endif
 
         <!-- Administration -->
         <li class="nav-heading"><span>Administration</span></li>
@@ -394,41 +469,28 @@
             <span>System Settings</span>
           </a>
         </li>
+        @if($isSuperAdmin || $featureService->allows($currentTenant, 'compliance.fbr'))
         <li class="nav-item">
           <a class="nav-link {{ request()->routeIs('fbr.*') ? 'active' : '' }}" href="{{ route('fbr.index') }}" data-tooltip="FBR Digital Invoicing">
             <i class="ph-duotone ph-shield-check"></i>
             <span>FBR Digital Invoicing</span>
           </a>
         </li>
+        @endif
+        @if($isSuperAdmin || $featureService->allows($currentTenant, 'marketing.whatsapp'))
         <li class="nav-item">
           <a class="nav-link {{ request()->routeIs('admin.whatsapp.*') || request()->routeIs('whatsapp.*') ? 'active' : '' }}" href="{{ route('admin.whatsapp.index') }}" data-tooltip="WhatsApp Integration">
             <i class="bi bi-whatsapp"></i>
             <span>WhatsApp Integration</span>
           </a>
         </li>
+        @endif
         <li class="nav-item">
           <a class="nav-link {{ request()->routeIs('audit-logs.*') ? 'active' : '' }}" href="{{ route('audit-logs.index') }}" data-tooltip="Audit Logs">
             <i class="ph-duotone ph-fingerprint"></i>
             <span>Audit Trail</span>
           </a>
         </li>
-
-        @if(auth()->user()?->role === 'super-admin' || auth()->user()?->hasRole('super-admin') || empty(auth()->user()?->tenant_id))
-        <!-- SaaS Platform Super Admin -->
-        <li class="nav-heading"><span>SaaS Platform</span></li>
-        <li class="nav-item has-submenu {{ request()->routeIs('saas.*') ? 'open' : '' }}">
-          <a class="nav-link" href="#" aria-expanded="{{ request()->routeIs('saas.*') ? 'true' : 'false' }}" data-tooltip="SaaS Admin">
-            <i class="ph-duotone ph-buildings text-warning"></i>
-            <span>SaaS Admin</span>
-            <i class="ph-duotone ph-caret-down nav-arrow"></i>
-          </a>
-          <ul class="nav-submenu">
-            <li><a class="nav-link {{ request()->routeIs('saas.dashboard') ? 'active' : '' }}" href="{{ route('saas.dashboard') }}"><i class="ph-duotone ph-gauge me-1 text-warning"></i> Overview</a></li>
-            <li><a class="nav-link {{ request()->routeIs('saas.tenants*') ? 'active' : '' }}" href="{{ route('saas.tenants.index') }}"><i class="ph-duotone ph-storefront me-1 text-primary"></i> Tenants</a></li>
-            <li><a class="nav-link {{ request()->routeIs('saas.plans*') ? 'active' : '' }}" href="{{ route('saas.plans.index') }}"><i class="ph-duotone ph-credit-card me-1 text-success"></i> Plans & Pricing</a></li>
-          </ul>
-        </li>
-        @endif
       </ul>
     </nav>
   </aside>

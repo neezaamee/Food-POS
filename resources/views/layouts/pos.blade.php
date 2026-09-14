@@ -70,24 +70,120 @@
     .badge-soft-danger { background-color: var(--danger-color-light, #fee2e2); color: var(--danger-color, #dc2626); }
     .badge-soft-info { background-color: var(--info-color-light, #cffafe); color: var(--info-color, #0891b2); }
 
-    /* Print styling: hide all UI when printing receipt */
+    /* Print styling: exact 80mm thermal receipt printing matching digital version */
+    @page {
+      margin: 0;
+      size: 80mm auto;
+    }
     @media print {
-      body * {
-        visibility: hidden !important;
+      *,
+      *::before,
+      *::after {
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+        color-adjust: exact !important;
+        box-sizing: border-box !important;
       }
-      #printableReceipt, #printableReceipt * {
-        visibility: visible !important;
-      }
-      #printableReceipt {
-        position: absolute !important;
-        left: 0 !important;
-        top: 0 !important;
+
+      html,
+      body {
         width: 80mm !important;
+        max-width: 80mm !important;
+        background: #fff !important;
+        color: #000 !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        height: auto !important;
+        min-height: auto !important;
+        overflow: visible !important;
+      }
+
+      /* Hide everything except the receipt modal and receipt content */
+      .pos-navbar,
+      .pos-container,
+      .pos-wrapper > *:not(.modal),
+      .modal-backdrop,
+      .modal-header,
+      .modal-footer,
+      .no-print {
+        display: none !important;
+      }
+
+      /* Flatten the modal container so it flows naturally on 80mm paper */
+      .modal {
+        position: static !important;
+        display: block !important;
+        width: 80mm !important;
+        max-width: 80mm !important;
+        height: auto !important;
+        min-height: auto !important;
+        overflow: visible !important;
+        background: transparent !important;
         padding: 0 !important;
         margin: 0 !important;
       }
-      .no-print {
-        display: none !important;
+
+      .modal-dialog {
+        position: static !important;
+        display: block !important;
+        width: 80mm !important;
+        max-width: 80mm !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        transform: none !important;
+      }
+
+      .modal-content {
+        position: static !important;
+        border: none !important;
+        box-shadow: none !important;
+        background: #fff !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        width: 80mm !important;
+        max-width: 80mm !important;
+      }
+
+      #printableReceipt {
+        display: block !important;
+        position: static !important;
+        width: 80mm !important;
+        max-width: 80mm !important;
+        padding: 4mm 4mm !important;
+        margin: 0 !important;
+        background: #fff !important;
+        font-family: 'Courier New', Courier, monospace !important;
+        font-size: 13px !important;
+        line-height: 1.3 !important;
+        color: #000 !important;
+      }
+
+      #printableReceipt img {
+        display: block !important;
+        margin: 0 auto 4px auto !important;
+        max-height: 48px !important;
+        max-width: 140px !important;
+        object-fit: contain !important;
+        image-rendering: -webkit-optimize-contrast !important;
+        image-rendering: crisp-edges !important;
+      }
+
+      #printableReceipt table {
+        width: 100% !important;
+        border-collapse: collapse !important;
+      }
+
+      #printableReceipt table th,
+      #printableReceipt table td {
+        font-size: 12px !important;
+      }
+
+      #printableReceipt .border-top {
+        border-top: 1px dashed #000 !important;
+      }
+
+      #printableReceipt .border-bottom {
+        border-bottom: 1px dashed #000 !important;
       }
     }
   </style>

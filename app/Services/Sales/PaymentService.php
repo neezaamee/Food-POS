@@ -30,9 +30,11 @@ class PaymentService
 
             // Map method to ledger account
             $accountCode = ($method === 'bank' || $method === 'card' || $method === 'digital') ? '1120' : '1110';
-            $account = Account::where('code', $accountCode)->first();
+            $account = Account::where('tenant_id', $order->tenant_id)->where('code', $accountCode)->first()
+                ?? Account::where('code', $accountCode)->first();
 
             $payment = $order->payments()->create([
+                'tenant_id' => $order->tenant_id,
                 'payment_method' => strtolower($method),
                 'amount' => $amount,
                 'payment_reference' => $reference,
@@ -54,7 +56,8 @@ class PaymentService
 
             // If payment is cash and user has an active shift, log cash drawer transaction
             if (strtolower($method) === 'cash') {
-                $activeShift = CashShift::where('user_id', $userId ?? auth()->id())
+                $activeShift = CashShift::where('tenant_id', $order->tenant_id)
+                    ->where('user_id', $userId ?? auth()->id())
                     ->where('status', 'open')
                     ->latest()
                     ->first();
@@ -65,6 +68,7 @@ class PaymentService
                     $activeShift->save();
 
                     CashTransaction::create([
+                        'tenant_id' => $order->tenant_id,
                         'cash_shift_id' => $activeShift->id,
                         'type' => 'sale',
                         'amount' => $amount,
@@ -75,6 +79,7 @@ class PaymentService
             }
 
             AuditLog::create([
+                'tenant_id' => $order->tenant_id,
                 'user_id' => $userId ?? auth()->id(),
                 'action' => 'Payment Received',
                 'module' => 'Sales',

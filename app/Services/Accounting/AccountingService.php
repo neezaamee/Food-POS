@@ -6,6 +6,7 @@ use App\Models\Account;
 use App\Models\JournalEntry;
 use App\Models\Order;
 use App\Models\SaleReturn;
+use App\Services\SaaS\TenantContext;
 use Exception;
 use Illuminate\Support\Facades\DB;
 
@@ -32,8 +33,10 @@ class AccountingService
             }
 
             $entryNumber = $data['entry_number'] ?? $this->generateEntryNumber($data['voucher_type'] ?? 'journal');
+            $tenantId = $data['tenant_id'] ?? app(TenantContext::class)->getTenantId() ?? auth()->user()?->getActiveTenantId();
 
             $entry = JournalEntry::create([
+                'tenant_id' => $tenantId,
                 'entry_number' => $entryNumber,
                 'entry_date' => $data['entry_date'] ?? now()->toDateString(),
                 'voucher_type' => $data['voucher_type'] ?? 'journal',
@@ -51,6 +54,7 @@ class AccountingService
                 $credit = (float) ($line['credit'] ?? 0.00);
 
                 $entry->lines()->create([
+                    'tenant_id' => $entry->tenant_id,
                     'account_id' => $account->id,
                     'debit' => $debit,
                     'credit' => $credit,
@@ -75,14 +79,18 @@ class AccountingService
      */
     public function postOrderSale(Order $order): JournalEntry
     {
-        $cashAcc = Account::where('code', '1110')->firstOrFail();
-        $bankAcc = Account::where('code', '1120')->firstOrFail();
-        $arAcc = Account::where('code', '1130')->firstOrFail();
-        $salesAcc = Account::where('code', '4110')->firstOrFail();
-        $deliveryAcc = Account::where('code', '4120')->firstOrFail();
-        $taxAcc = Account::where('code', '2110')->firstOrFail();
-        $cogsAcc = Account::where('code', '5110')->firstOrFail();
-        $invAcc = Account::where('code', '1140')->firstOrFail();
+        $tenantId = $order->tenant_id;
+        $getAccount = fn ($code) => Account::where('tenant_id', $tenantId)->where('code', $code)->first()
+            ?? Account::where('code', $code)->firstOrFail();
+
+        $cashAcc = $getAccount('1110');
+        $bankAcc = $getAccount('1120');
+        $arAcc = $getAccount('1130');
+        $salesAcc = $getAccount('4110');
+        $deliveryAcc = $getAccount('4120');
+        $taxAcc = $getAccount('2110');
+        $cogsAcc = $getAccount('5110');
+        $invAcc = $getAccount('1140');
 
         $lines = [];
 

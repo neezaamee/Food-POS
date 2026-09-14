@@ -8,7 +8,8 @@ use App\Models\FbrSubmission;
 use App\Models\Role;
 use App\Models\SystemSetting;
 use App\Models\User;
-use App\Services\SaaS\SubscriptionService;
+use App\Services\SaaS\FeatureAccessService;
+use App\Services\SaaS\TenantContext;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rule;
@@ -17,7 +18,13 @@ class AdminController extends Controller
 {
     public function users(Request $request)
     {
-        $query = User::with('roles')->latest();
+        $tenantId = app(TenantContext::class)->getTenantId() ?? auth()->user()?->getActiveTenantId();
+
+        $query = User::with('roles')
+            ->when(! auth()->user()?->isSuperAdmin() || $tenantId, function ($q) use ($tenantId) {
+                $q->where('tenant_id', $tenantId)->storeStaff();
+            })
+            ->latest();
 
         if ($request->filled('search')) {
             $search = $request->search;
@@ -33,14 +40,16 @@ class AdminController extends Controller
         }
 
         $users = $query->paginate(15)->withQueryString();
-        $roles = Role::all();
+        $roles = Role::whereNotIn('slug', ['super-admin', 'super_admin'])->get();
 
         return view('admin.users.index', compact('users', 'roles'));
     }
 
     public function storeUser(Request $request)
     {
-        if (! app(SubscriptionService::class)->canCreateUser()) {
+        $tenantId = app(TenantContext::class)->getTenantId() ?? auth()->user()?->getActiveTenantId();
+
+        if ($tenantId && ! app(FeatureAccessService::class)->hasQuota($tenantId, 'users')) {
             return redirect()->back()->with('error', 'You have reached the maximum staff user limit allowed by your subscription plan. Please upgrade to add more staff.');
         }
 
@@ -48,11 +57,12 @@ class AdminController extends Controller
             'name' => 'required|string|max:255',
             'email' => 'required|email|unique:users,email',
             'phone' => 'nullable|string|max:50',
-            'role' => 'required|string',
+            'role' => 'required|string|not_in:super-admin,super_admin',
             'password' => 'required|string|min:6',
         ]);
 
         $user = User::create([
+            'tenant_id' => $tenantId,
             'name' => $request->name,
             'email' => $request->email,
             'phone' => $request->phone,
@@ -66,16 +76,22 @@ class AdminController extends Controller
             $user->roles()->sync([$roleRecord->id]);
         }
 
-        return redirect()->back()->with('success', 'User account created successfully.');
+        return redirect()->back()->with('success', 'Staff account created successfully.');
     }
 
-    public function updateUser(Request $request, User $user)
+    public function updateUser(Request $request, $id)
     {
+        $tenantId = app(TenantContext::class)->getTenantId() ?? auth()->user()?->getActiveTenantId();
+
+        $user = auth()->user()?->isSuperAdmin()
+            ? User::findOrFail($id)
+            : User::where('tenant_id', $tenantId)->storeStaff()->findOrFail($id);
+
         $request->validate([
             'name' => 'required|string|max:255',
             'email' => ['required', 'email', Rule::unique('users')->ignore($user->id)],
             'phone' => 'nullable|string|max:50',
-            'role' => 'required|string',
+            'role' => 'required|string|not_in:super-admin,super_admin',
             'status' => 'required|in:active,inactive',
             'password' => 'nullable|string|min:6',
         ]);
@@ -100,6 +116,23 @@ class AdminController extends Controller
         }
 
         return redirect()->back()->with('success', 'User account updated successfully.');
+    }
+
+    public function destroyUser($id)
+    {
+        $tenantId = app(TenantContext::class)->getTenantId() ?? auth()->user()?->getActiveTenantId();
+
+        $user = auth()->user()?->isSuperAdmin()
+            ? User::findOrFail($id)
+            : User::where('tenant_id', $tenantId)->storeStaff()->findOrFail($id);
+
+        if ($user->id === auth()->id()) {
+            return redirect()->back()->with('error', 'You cannot delete your own account.');
+        }
+
+        $user->delete();
+
+        return redirect()->back()->with('success', 'Staff account removed successfully.');
     }
 
     public function profile()

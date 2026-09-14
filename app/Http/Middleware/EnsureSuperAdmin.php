@@ -20,7 +20,7 @@ class EnsureSuperAdmin
 
         $user = Auth::user();
 
-        if ($user->role === 'super-admin' || $user->hasRole('super-admin') || empty($user->tenant_id)) {
+        if ($user->isSuperAdmin()) {
             return $next($request);
         }
 
