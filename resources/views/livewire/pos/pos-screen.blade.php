@@ -225,6 +225,12 @@
                   onmouseover="this.style.transform='translateY(-2px)'"
                   onmouseout="this.style.transform='translateY(0)'">
                   <div>
+                    <!-- Product Photo / Image if uploaded -->
+                    @if ($prod->image_url)
+                      <div class="rounded overflow-hidden mb-1.5 bg-light border" style="height: 58px;">
+                        <img src="{{ $prod->image_url }}" alt="{{ $prod->name }}" style="width: 100%; height: 100%; object-fit: cover;">
+                      </div>
+                    @endif
                     <!-- Product Badge & Prep Time -->
                     <div class="d-flex justify-content-between align-items-center mb-1">
                       <span class="badge badge-soft-primary" style="font-size: 0.65rem;">
@@ -241,23 +247,23 @@
                       @endif
                     </div>
                     <!-- Product Name -->
-                    <div class="fw-semibold text-heading small text-truncate-2 mb-1" style="min-height: 2.4em; line-height: 1.2;">
+                    <div class="fw-semibold text-heading small text-truncate-2 mb-1" style="min-height: 2.2em; line-height: 1.18;">
                       {{ $prod->name }}
                     </div>
                   </div>
                   <!-- Price & Add -->
-                  <div class="d-flex justify-content-between align-items-center mt-2 pt-2 border-top">
+                  <div class="d-flex justify-content-between align-items-center mt-1 pt-1 border-top">
                     @if ($prod->has_variants && $prod->variants->isNotEmpty())
                       <div>
-                        <div class="text-muted" style="font-size: 0.68rem; line-height: 1;">Starts from</div>
+                        <div class="text-muted" style="font-size: 0.65rem; line-height: 1;">Starts from</div>
                         <span class="fw-bold fs-6 text-primary">Rs. {{ number_format($prod->variants->min('sale_price')) }}</span>
                       </div>
-                      <button type="button" class="btn btn-sm btn-outline-primary rounded-pill px-2 py-0" style="font-size: 0.75rem; height: 26px;">
+                      <button type="button" class="btn btn-sm btn-outline-primary rounded-pill px-2 py-0" style="font-size: 0.75rem; height: 24px;">
                         Choose <i class="bi bi-chevron-right ms-1"></i>
                       </button>
                     @else
                       <span class="fw-bold fs-6 text-primary">Rs. {{ number_format($prod->sale_price) }}</span>
-                      <button type="button" class="btn btn-sm btn-primary rounded-circle p-0" style="width: 28px; height: 28px;">
+                      <button type="button" class="btn btn-sm btn-primary rounded-circle p-0" style="width: 26px; height: 26px;">
                         <i class="bi bi-plus"></i>
                       </button>
                     @endif
@@ -278,14 +284,14 @@
     <!-- RIGHT PANEL: Order Cart & Checkout (40%) -->
     <div class="col-12 col-lg-6 col-xl-5 p-0 d-flex flex-column h-100 bg-surface">
       <!-- Order Header -->
-      <div class="p-3 border-bottom d-flex align-items-center justify-content-between">
+      <div class="px-3 py-2 border-bottom d-flex align-items-center justify-content-between pos-cart-header">
         <div>
           <div class="d-flex align-items-center gap-2">
             <span class="badge bg-dark">{{ $orderType }}</span>
             <span class="fw-bold fs-6 text-heading">{{ $orderNumber }}</span>
           </div>
           <!-- Customer or Table Meta -->
-          <div class="small text-muted mt-1">
+          <div class="small text-muted" style="font-size: 0.75rem; margin-top: 2px;">
             @if ($orderType === 'DINE_IN')
               <i class="ph-duotone ph-fork-knife me-1"></i> {{ $selectedTableName ?: 'Select Table' }}
               @if ($selectedTableId)
@@ -300,101 +306,96 @@
         </div>
         <div class="d-flex align-items-center gap-1">
           @if ($orderType === 'DINE_IN' && $selectedTableId && $currentOrderId)
-            <button type="button" wire:click="openTableTransfer" class="btn btn-sm btn-outline-warning" title="Transfer Table">
+            <button type="button" wire:click="openTableTransfer" class="btn btn-sm btn-outline-warning py-0.5 px-2" title="Transfer Table">
               <i class="bi bi-arrow-left-right"></i>
             </button>
           @endif
-          <button type="button" wire:click="clearOrder" class="btn btn-sm btn-outline-danger" title="Clear Order & All Form Fields">
-            <i class="bi bi-arrow-clockwise me-1"></i> Clear Order
+          <button type="button" wire:click="clearOrder" class="btn btn-sm btn-outline-danger py-0.5 px-2" title="Clear Order & All Form Fields">
+            <i class="bi bi-arrow-clockwise me-1"></i> Clear
           </button>
         </div>
       </div>
 
-      <!-- Customer Quick Edit (Mandatory Details) -->
-      <div class="px-3 py-2 border-bottom bg-light-subtle small">
-        <div class="d-flex align-items-center justify-content-between mb-1">
-          <span class="small fw-bold text-muted" style="font-size: 0.72rem;">CUSTOMER DETAILS</span>
-          <span class="badge bg-danger-subtle text-danger border border-danger-subtle" style="font-size: 0.65rem;">
-            * Name & Phone Mandatory
-          </span>
-        </div>
-        <div class="d-flex align-items-center gap-2">
-          <input 
-            type="tel" 
-            wire:model.live.debounce.300ms="customerPhone" 
-            id="posCustomerPhone"
-            class="form-control form-control-sm" 
-            placeholder="Mobile (03006677991) *" 
-            maxlength="11"
-            pattern="[0-9]{11}"
-            required
-            oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0, 11)"
-            autocomplete="off"
-            title="11-digit mobile number starting with 03 (e.g. 03006677991)"
-            onkeydown="if(event.key === 'Enter'){ event.preventDefault(); document.getElementById('posCustomerName')?.focus(); }">
-          <input 
-            type="text" 
-            wire:model.defer="customerName" 
-            id="posCustomerName" 
-            list="posCustomerList" 
-            class="form-control form-control-sm" 
-            placeholder="Customer Name *"
-            required
-            onkeydown="if(event.key === 'Enter'){ event.preventDefault(); if(document.getElementById('posCustomerAddress')){ document.getElementById('posCustomerAddress').focus(); } else { document.getElementById('posProductCodeInput')?.focus(); } }">
-          <datalist id="posCustomerList">
-            @foreach ($customers as $c)
-              <option value="{{ $c->name }}">{{ $c->mobile }} ({{ $c->name }})</option>
-            @endforeach
-          </datalist>
-        </div>
-        @if ($orderType === 'DELIVERY' || !empty($customerAddress))
-          <div class="input-group input-group-sm mt-1">
-            <span class="input-group-text bg-white text-muted py-0 px-2" title="Delivery / Customer Address"><i class="bi bi-geo-alt-fill text-danger" style="font-size: 0.8rem;"></i></span>
+      <!-- Customer Quick Edit (Mandatory Details) & Fast Item Code Entry -->
+      <div class="px-3 py-1.5 border-bottom bg-light-subtle pos-customer-strip">
+        <div class="row g-1.5 align-items-center">
+          <div class="col-6">
             <input 
-              type="text" 
-              wire:model.live.debounce.300ms="customerAddress" 
-              id="posCustomerAddress"
+              type="tel" 
+              wire:model.live.debounce.300ms="customerPhone" 
+              id="posCustomerPhone"
               class="form-control form-control-sm" 
-              placeholder="Delivery / Drop-off Address..."
-              title="Customer Address"
-              onkeydown="if(event.key === 'Enter'){ event.preventDefault(); document.getElementById('posProductCodeInput')?.focus(); }">
+              placeholder="Mobile (0300...) *" 
+              maxlength="11"
+              pattern="[0-9]{11}"
+              required
+              oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0, 11)"
+              autocomplete="off"
+              title="11-digit mobile number"
+              onkeydown="if(event.key === 'Enter'){ event.preventDefault(); document.getElementById('posCustomerName')?.focus(); }">
           </div>
-        @endif
-
-        <!-- Fast Item Code / Barcode Punch Entry -->
-        <div class="mt-2 pt-2 border-top">
-          <div class="input-group input-group-sm">
-            <span class="input-group-text bg-white text-primary fw-bold px-2" style="font-size: 0.75rem;">
-              <i class="bi bi-upc-scan me-1"></i> Item Code
-            </span>
+          <div class="col-6">
             <input 
               type="text" 
-              wire:model="productCodeInput" 
-              id="posProductCodeInput"
-              class="form-control form-control-sm fw-semibold" 
-              placeholder="Code (e.g. BUR-01, 2*BUR-01) & Enter"
-              autocomplete="off"
-              onkeydown="if(event.key === 'Enter'){ event.preventDefault(); @this.call('handleProductCodeEnter'); }">
-            <button 
-              type="button" 
-              wire:click="handleProductCodeEnter" 
-              class="btn btn-primary btn-sm px-2 fw-semibold" 
-              style="font-size: 0.75rem;"
-              title="Add item by code">
-              <i class="bi bi-plus-lg"></i> Add
-            </button>
+              wire:model.defer="customerName" 
+              id="posCustomerName" 
+              list="posCustomerList" 
+              class="form-control form-control-sm" 
+              placeholder="Customer Name *"
+              required
+              onkeydown="if(event.key === 'Enter'){ event.preventDefault(); if(document.getElementById('posCustomerAddress')){ document.getElementById('posCustomerAddress').focus(); } else { document.getElementById('posProductCodeInput')?.focus(); } }">
+            <datalist id="posCustomerList">
+              @foreach ($customers as $c)
+                <option value="{{ $c->name }}">{{ $c->mobile }} ({{ $c->name }})</option>
+              @endforeach
+            </datalist>
           </div>
-          <div class="d-flex justify-content-between align-items-center mt-1 text-muted" style="font-size: 0.68rem;">
-            <span><i class="bi bi-keyboard me-1"></i> Code + <kbd class="bg-white text-dark border">Enter</kbd> to add</span>
-            <span>Empty + <kbd class="bg-white text-dark border">Enter</kbd> &rarr; <strong class="text-primary">Save</strong></span>
+          @if ($orderType === 'DELIVERY' || !empty($customerAddress))
+            <div class="col-12">
+              <div class="input-group input-group-sm">
+                <span class="input-group-text bg-white text-muted py-0 px-2" title="Delivery Address"><i class="bi bi-geo-alt-fill text-danger" style="font-size: 0.75rem;"></i></span>
+                <input 
+                  type="text" 
+                  wire:model.live.debounce.300ms="customerAddress" 
+                  id="posCustomerAddress"
+                  class="form-control form-control-sm" 
+                  placeholder="Delivery Address..."
+                  title="Customer Address"
+                  onkeydown="if(event.key === 'Enter'){ event.preventDefault(); document.getElementById('posProductCodeInput')?.focus(); }">
+              </div>
+            </div>
+          @endif
+          <!-- Fast Item Code / Barcode Punch Entry -->
+          <div class="col-12">
+            <div class="input-group input-group-sm">
+              <span class="input-group-text bg-white text-primary fw-bold px-2 py-0" style="font-size: 0.72rem;">
+                <i class="bi bi-upc-scan me-1"></i> Code
+              </span>
+              <input 
+                type="text" 
+                wire:model="productCodeInput" 
+                id="posProductCodeInput"
+                class="form-control form-control-sm fw-semibold" 
+                placeholder="Item Code (e.g. BUR-01) & Enter"
+                autocomplete="off"
+                onkeydown="if(event.key === 'Enter'){ event.preventDefault(); @this.call('handleProductCodeEnter'); }">
+              <button 
+                type="button" 
+                wire:click="handleProductCodeEnter" 
+                class="btn btn-primary btn-sm px-2 fw-semibold" 
+                style="font-size: 0.72rem;"
+                title="Add item by code">
+                <i class="bi bi-plus-lg"></i> Add
+              </button>
+            </div>
           </div>
         </div>
       </div>
 
-      <!-- Compact Delivery Summary Strip (Shown only for DELIVERY, keeping cart fully visible) -->
+      <!-- Compact Delivery Summary Strip -->
       @if ($orderType === 'DELIVERY')
-        <div class="px-3 py-1 bg-primary-subtle bg-opacity-25 border-bottom d-flex align-items-center justify-content-between small" style="min-height: 34px;">
-          <div class="d-flex align-items-center gap-2 text-truncate pe-2" style="font-size: 0.78rem;">
+        <div class="px-3 py-1 bg-primary-subtle bg-opacity-25 border-bottom d-flex align-items-center justify-content-between small" style="min-height: 30px;">
+          <div class="d-flex align-items-center gap-2 text-truncate pe-2" style="font-size: 0.75rem;">
             <i class="ph-duotone ph-moped text-primary fs-6 flex-shrink-0"></i>
             <span class="text-truncate">
               @if ($deliveryAreaId)
@@ -404,157 +405,165 @@
                   <span class="text-dark">• Rider: {{ $riders->firstWhere('id', $deliveryRiderId)?->name }}</span>
                 @endif
               @else
-                <span class="text-danger fw-semibold"><i class="bi bi-exclamation-circle me-1"></i> Delivery Area & Rider Required</span>
+                <span class="text-danger fw-semibold"><i class="bi bi-exclamation-circle me-1"></i> Area & Rider Required</span>
               @endif
             </span>
           </div>
-          <button type="button" wire:click="$toggle('showDeliveryModal')" class="btn btn-primary btn-sm py-0 px-2 text-nowrap flex-shrink-0" style="font-size: 0.72rem; height: 24px; line-height: 22px;">
+          <button type="button" wire:click="$toggle('showDeliveryModal')" class="btn btn-primary btn-sm py-0 px-2 text-nowrap flex-shrink-0" style="font-size: 0.7rem; height: 22px; line-height: 20px;">
             <i class="bi bi-pencil-square me-1"></i> {{ $deliveryAreaId ? 'Edit' : 'Setup' }}
           </button>
         </div>
       @endif
 
-      <!-- Compact Dine-In Table Strip (Mandatory Table Selection) -->
+      <!-- Compact Dine-In Table Strip -->
       @if ($orderType === 'DINE_IN')
-        <div class="px-3 py-1 {{ $selectedTableId ? 'bg-success-subtle bg-opacity-25' : 'bg-danger-subtle' }} border-bottom d-flex align-items-center justify-content-between small" style="min-height: 34px;">
-          <div class="d-flex align-items-center gap-2 text-truncate pe-2" style="font-size: 0.78rem;">
+        <div class="px-3 py-1 {{ $selectedTableId ? 'bg-success-subtle bg-opacity-25' : 'bg-danger-subtle' }} border-bottom d-flex align-items-center justify-content-between small" style="min-height: 30px;">
+          <div class="d-flex align-items-center gap-2 text-truncate pe-2" style="font-size: 0.75rem;">
             <i class="ph-duotone ph-chair {{ $selectedTableId ? 'text-success' : 'text-danger' }} fs-6 flex-shrink-0"></i>
             <span class="text-truncate">
               @if ($selectedTableId)
                 <strong class="text-success">Table: {{ $selectedTableName }}</strong>
-                <span class="text-muted">(Assigned)</span>
               @else
-                <span class="text-danger fw-bold"><i class="bi bi-exclamation-triangle-fill me-1"></i> Table Selection Mandatory</span>
+                <span class="text-danger fw-bold"><i class="bi bi-exclamation-triangle-fill me-1"></i> Table Required</span>
               @endif
             </span>
           </div>
-          <button type="button" wire:click="$set('selectedTableId', null)" class="btn {{ $selectedTableId ? 'btn-outline-secondary' : 'btn-danger' }} btn-sm py-0 px-2 text-nowrap flex-shrink-0" style="font-size: 0.72rem; height: 24px; line-height: 22px;">
-            <i class="bi bi-grid-fill me-1"></i> {{ $selectedTableId ? 'Change Table' : 'Select Table' }}
+          <button type="button" wire:click="$set('selectedTableId', null)" class="btn {{ $selectedTableId ? 'btn-outline-secondary' : 'btn-danger' }} btn-sm py-0 px-2 text-nowrap flex-shrink-0" style="font-size: 0.7rem; height: 22px; line-height: 20px;">
+            <i class="bi bi-grid-fill me-1"></i> {{ $selectedTableId ? 'Change' : 'Select' }}
           </button>
         </div>
       @endif
 
-      <!-- Cart Items Scroll List -->
-      <div class="flex-grow-1 overflow-y-auto px-3 py-2" id="posCartScrollContainer">
+      <!-- Cart Items Scroll List (Dense 32px rows for small/14-inch screens) -->
+      <div class="flex-grow-1 overflow-y-auto px-3 py-1" id="posCartScrollContainer">
         @if (empty($cart))
-          <div class="h-100 d-flex flex-column align-items-center justify-content-center text-muted py-5">
+          <div class="h-100 d-flex flex-column align-items-center justify-content-center text-muted py-4">
             <i class="ph-duotone ph-shopping-cart fs-1 mb-2 opacity-50"></i>
-            <p class="mb-0">Your order cart is empty.</p>
-            <small>Tap products from the menu to add items.</small>
+            <p class="mb-0 small">Your order cart is empty.</p>
+            <small class="text-muted" style="font-size: 0.72rem;">Tap products from the menu to add items.</small>
           </div>
         @else
-          <div class="list-group list-group-flush">
+          <div class="d-flex flex-column">
             @foreach ($cart as $index => $item)
-              <div class="list-group-item px-0 py-2 border-bottom">
-                <div class="d-flex justify-content-between align-items-start mb-1">
-                  <div class="fw-semibold text-heading small pe-2">{{ $item['name'] }}</div>
-                  <div class="fw-bold text-heading small">Rs. {{ number_format($item['price'] * $item['qty']) }}</div>
+              <div class="pos-cart-item py-1.5 px-0 border-bottom">
+                <div class="d-flex align-items-center justify-content-between gap-1.5">
+                  <!-- Stepper & Item Info -->
+                  <div class="d-flex align-items-center gap-2 flex-grow-1 min-w-0">
+                    <div class="input-group input-group-sm flex-shrink-0" style="width: 76px; height: 26px;">
+                      <button type="button" wire:click="updateQty({{ $index }}, -1)" class="btn btn-outline-secondary px-1.5 py-0" style="font-size: 0.75rem; line-height: 1;">-</button>
+                      <input type="text" wire:change="setQty({{ $index }}, $event.target.value)" value="{{ $item['qty'] }}" class="form-control text-center p-0 fw-bold" style="font-size: 0.78rem;">
+                      <button type="button" wire:click="updateQty({{ $index }}, 1)" class="btn btn-outline-secondary px-1.5 py-0" style="font-size: 0.75rem; line-height: 1;">+</button>
+                    </div>
+                    <div class="min-w-0 flex-grow-1">
+                      <div class="fw-semibold text-heading text-truncate" style="font-size: 0.82rem; line-height: 1.2;" title="{{ $item['name'] }}">
+                        {{ $item['name'] }}
+                      </div>
+                      <div class="text-muted" style="font-size: 0.7rem; line-height: 1;">
+                        Rs. {{ number_format($item['price']) }} each
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Subtotal & Actions -->
+                  <div class="d-flex align-items-center gap-1.5 flex-shrink-0">
+                    <span class="fw-bold text-heading" style="font-size: 0.85rem;">
+                      Rs. {{ number_format($item['price'] * $item['qty']) }}
+                    </span>
+                    <button type="button" wire:click="openItemNote({{ $index }})" class="btn btn-sm btn-outline-secondary p-0 d-flex align-items-center justify-content-center" style="width: 24px; height: 24px;" title="Cooking Note">
+                      <i class="bi {{ !empty($item['notes']) ? 'bi-chat-dots-fill text-warning' : 'bi-pencil' }}" style="font-size: 0.75rem;"></i>
+                    </button>
+                    <button type="button" wire:click="removeFromCart({{ $index }})" class="btn btn-sm text-danger p-0 d-flex align-items-center justify-content-center" style="width: 22px; height: 22px;" title="Remove Item">
+                      <i class="bi bi-x-circle" style="font-size: 0.9rem;"></i>
+                    </button>
+                  </div>
                 </div>
-                
-                <!-- Special Instructions / Note preview -->
+
+                <!-- Special Cooking Note preview -->
                 @if (!empty($item['notes']))
-                  <div class="small text-warning fst-italic mb-1" style="font-size: 0.75rem;">
-                    <i class="bi bi-chat-dots"></i> {{ $item['notes'] }}
+                  <div class="small text-warning-emphasis bg-warning-subtle px-2 py-0.5 rounded mt-1 d-flex align-items-center gap-1" style="font-size: 0.72rem;">
+                    <i class="bi bi-chat-dots-fill"></i>
+                    <span class="text-truncate">{{ $item['notes'] }}</span>
                   </div>
                 @endif
-
-                <!-- Steppers and Actions -->
-                <div class="d-flex justify-content-between align-items-center">
-                  <div class="small text-muted">Rs. {{ number_format($item['price']) }} each</div>
-                  <div class="d-flex align-items-center gap-1">
-                    <button type="button" wire:click="openItemNote({{ $index }})" class="btn btn-sm btn-outline-secondary py-0 px-2" style="font-size: 0.75rem;" title="Add Cooking Note">
-                      <i class="bi bi-pencil"></i> Note
-                    </button>
-                    <div class="input-group input-group-sm" style="width: 100px;">
-                      <button type="button" wire:click="updateQty({{ $index }}, -1)" class="btn btn-outline-secondary px-2">-</button>
-                      <input type="text" wire:change="setQty({{ $index }}, $event.target.value)" value="{{ $item['qty'] }}" class="form-control text-center p-0">
-                      <button type="button" wire:click="updateQty({{ $index }}, 1)" class="btn btn-outline-secondary px-2">+</button>
-                    </div>
-                    <button type="button" wire:click="removeFromCart({{ $index }})" class="btn btn-sm text-danger p-0 ms-1">
-                      <i class="bi bi-x-circle fs-6"></i>
-                    </button>
-                  </div>
-                </div>
               </div>
             @endforeach
           </div>
         @endif
       </div>
 
-      <!-- Financial Calculation Summary Box -->
-      <div class="p-3 border-top bg-surface">
-        <div class="d-flex justify-content-between small text-muted mb-1">
+      <!-- Financial Calculation Summary Box (Compact for 14-inch screens) -->
+      <div class="p-2.5 border-top bg-surface pos-summary-box">
+        <div class="d-flex justify-content-between small text-muted mb-1" style="font-size: 0.78rem;">
           <span>Subtotal</span>
-          <span id="posCartSubtotal">Rs. {{ number_format($subtotal, 2) }}</span>
+          <span id="posCartSubtotal" class="fw-semibold text-heading">Rs. {{ number_format($subtotal, 2) }}</span>
         </div>
 
         <!-- Discount Row -->
-        <div class="d-flex justify-content-between align-items-center small mb-1">
+        <div class="d-flex justify-content-between align-items-center small mb-1" style="font-size: 0.78rem;">
           <div class="d-flex align-items-center gap-1">
             <span class="text-muted">Discount</span>
-            <select wire:model.live="discountType" id="posDiscountType" class="form-select form-select-sm p-0 px-1" style="width: 50px; font-size: 0.7rem;">
+            <select wire:model.live="discountType" id="posDiscountType" class="form-select form-select-sm p-0 px-1" style="width: 48px; height: 22px; font-size: 0.7rem;">
               <option value="fixed">Rs.</option>
               <option value="percent">%</option>
             </select>
-            <input type="number" wire:model.live.debounce.300ms="discountRate" id="posDiscountRate" class="form-control form-control-sm p-0 px-1 text-end" style="width: 60px; font-size: 0.75rem;" min="0">
+            <input type="number" wire:model.live.debounce.300ms="discountRate" id="posDiscountRate" class="form-control form-control-sm p-0 px-1 text-end" style="width: 55px; height: 22px; font-size: 0.75rem;" min="0">
           </div>
-          <span class="text-danger" id="posCartDiscount">- Rs. {{ number_format($discountAmount, 2) }}</span>
+          <span class="text-danger fw-semibold" id="posCartDiscount">- Rs. {{ number_format($discountAmount, 2) }}</span>
         </div>
 
         <!-- Delivery Fee Row (if delivery) -->
         @if ($orderType === 'DELIVERY')
-          <div class="d-flex justify-content-between small text-muted mb-1" id="posDeliveryFeeRow">
+          <div class="d-flex justify-content-between small text-muted mb-1" id="posDeliveryFeeRow" style="font-size: 0.78rem;">
             <span>Delivery Fee</span>
-            <span id="posCartDeliveryFee">+ Rs. {{ number_format($deliveryCharge, 2) }}</span>
+            <span id="posCartDeliveryFee" class="fw-semibold text-heading">+ Rs. {{ number_format($deliveryCharge, 2) }}</span>
           </div>
         @endif
 
         <!-- Tax Row -->
         @if ($taxAmount > 0)
-          <div class="d-flex justify-content-between small text-muted mb-1" id="posTaxRow">
+          <div class="d-flex justify-content-between small text-muted mb-1" id="posTaxRow" style="font-size: 0.78rem;">
             <span>Tax ({{ $taxRate }}%)</span>
-            <span id="posCartTax">+ Rs. {{ number_format($taxAmount, 2) }}</span>
+            <span id="posCartTax" class="fw-semibold text-heading">+ Rs. {{ number_format($taxAmount, 2) }}</span>
           </div>
         @endif
 
         <!-- Grand Total Hero -->
-        <div class="d-flex justify-content-between align-items-baseline pt-2 border-top mt-2">
-          <span class="fw-bold fs-5 text-heading">Grand Total</span>
-          <span class="fw-bold fs-4 text-primary" id="posCartGrandTotal">Rs. {{ number_format($grandTotal, 2) }}</span>
+        <div class="d-flex justify-content-between align-items-baseline pt-1.5 border-top mt-1">
+          <span class="fw-bold fs-6 text-heading">Grand Total</span>
+          <span class="fw-bold fs-5 text-primary" id="posCartGrandTotal">Rs. {{ number_format($grandTotal, 2) }}</span>
         </div>
 
         @if (! $activeShift)
-          <div class="alert alert-warning py-2 px-2 small mt-2 mb-0 d-flex align-items-center justify-content-between">
+          <div class="alert alert-warning py-1 px-2 small mt-1.5 mb-0 d-flex align-items-center justify-content-between" style="font-size: 0.72rem;">
             <div>
               <i class="bi bi-exclamation-triangle-fill me-1"></i> <strong>Shift Closed</strong>
-              <div style="font-size: 0.72rem;">Open shift to punch orders</div>
             </div>
-            <button type="button" wire:click="$set('showOpenShiftModal', true)" class="btn btn-dark btn-sm py-1 px-2 fw-bold" style="font-size: 0.72rem;">
+            <button type="button" wire:click="$set('showOpenShiftModal', true)" class="btn btn-dark btn-sm py-0.5 px-2 fw-bold" style="font-size: 0.7rem;">
               Open Shift
             </button>
           </div>
         @endif
 
         @if ($orderType === 'DINE_IN' && ! $selectedTableId)
-          <div class="alert alert-danger py-1 px-2 small mt-2 mb-0 d-flex align-items-center justify-content-between" id="posTableRequiredAlert" style="font-size: 0.72rem;">
-            <span><i class="bi bi-exclamation-triangle-fill me-1"></i> <strong>Table Required:</strong> Select a table to place Dine-In order.</span>
+          <div class="alert alert-danger py-1 px-2 small mt-1.5 mb-0 d-flex align-items-center justify-content-between" id="posTableRequiredAlert" style="font-size: 0.72rem;">
+            <span><i class="bi bi-exclamation-triangle-fill me-1"></i> <strong>Table Required:</strong> Select a table.</span>
             <button type="button" wire:click="$set('selectedTableId', null)" class="btn btn-danger btn-sm py-0 px-2 fw-bold" style="font-size: 0.68rem;">Choose Table</button>
           </div>
         @endif
 
-        <!-- Action Buttons Grid (Save & Reset, Print Unpaid Bill & Reset, Checkout) -->
-        <div class="row g-2 mt-2">
+        <!-- Action Buttons Grid (Compact 36px height) -->
+        <div class="row g-1.5 mt-1">
           <div class="col-3">
             <button 
               type="button" 
               wire:click="saveOpenOrder" 
               id="posSaveOrderBtn"
-              class="btn btn-outline-secondary w-100 py-2 px-1 text-center pos-action-btn" 
+              class="btn btn-outline-secondary w-100 py-1.5 px-1 text-center pos-action-btn d-flex align-items-center justify-content-center gap-1" 
               {{ empty($cart) ? 'disabled' : '' }} 
-              title="Save / Punch order to open orders and reset for next order (Press Enter when focused)"
+              title="Save / Punch order to open orders (Enter)"
               onkeydown="if(event.key === 'Enter'){ event.preventDefault(); this.click(); }">
-              <i class="ph-duotone ph-floppy-disk d-block fs-5 mb-1"></i>
-              <span class="small fw-semibold" style="font-size: 0.72rem;">Save</span>
+              <i class="ph-duotone ph-floppy-disk fs-6"></i>
+              <span class="fw-semibold" style="font-size: 0.75rem;">Save</span>
             </button>
           </div>
           <div class="col-4">
@@ -562,12 +571,12 @@
               type="button" 
               wire:click="saveAndPrintUnpaidBill" 
               id="posPrintBillBtn"
-              class="btn btn-outline-dark w-100 py-2 px-1 text-center pos-action-btn" 
+              class="btn btn-outline-dark w-100 py-1.5 px-1 text-center pos-action-btn d-flex align-items-center justify-content-center gap-1" 
               {{ empty($cart) ? 'disabled' : '' }} 
-              title="Save order & print unpaid bill for customer/rider, then reset for next order"
+              title="Save & print unpaid bill (Enter)"
               onkeydown="if(event.key === 'Enter'){ event.preventDefault(); this.click(); }">
-              <i class="bi bi-printer d-block fs-5 mb-1"></i>
-              <span class="small fw-bold" style="font-size: 0.72rem;">Print Bill</span>
+              <i class="bi bi-printer fs-6"></i>
+              <span class="fw-bold" style="font-size: 0.75rem;">Bill</span>
             </button>
           </div>
           <div class="col-5">
@@ -575,12 +584,12 @@
               type="button" 
               wire:click="openCheckout" 
               id="posPayBtn"
-              class="btn btn-primary w-100 py-2 px-1 text-center fw-bold pos-action-btn" 
+              class="btn btn-primary w-100 py-1.5 px-1 text-center fw-bold pos-action-btn d-flex align-items-center justify-content-center gap-1" 
               {{ empty($cart) ? 'disabled' : '' }} 
               title="Take payment and complete checkout"
               onkeydown="if(event.key === 'Enter'){ event.preventDefault(); this.click(); }">
-              <i class="ph-duotone ph-credit-card d-block fs-5 mb-1"></i>
-              <span class="small fw-bold text-uppercase" style="font-size: 0.75rem;">PAY</span>
+              <i class="ph-duotone ph-credit-card fs-6"></i>
+              <span class="fw-bold text-uppercase" style="font-size: 0.78rem;">PAY</span>
             </button>
           </div>
         </div>
@@ -658,6 +667,9 @@
                   <button type="button" wire:click="$set('paymentMethod', 'bank')" class="btn {{ $paymentMethod === 'bank' ? 'btn-primary' : 'btn-outline-secondary' }}">
                     <i class="ph-duotone ph-bank me-1"></i> Bank
                   </button>
+                  <button type="button" wire:click="$set('paymentMethod', 'digital')" class="btn {{ $paymentMethod === 'digital' ? 'btn-primary' : 'btn-outline-secondary' }}">
+                    <i class="ph-duotone ph-device-mobile me-1"></i> Wallet / QR
+                  </button>
                   <button type="button" wire:click="$set('paymentMethod', 'credit')" class="btn {{ $paymentMethod === 'credit' ? 'btn-primary' : 'btn-outline-secondary' }}">
                     <i class="ph-duotone ph-handshake me-1"></i> Credit
                   </button>
@@ -666,8 +678,124 @@
                   </button>
                 </div>
 
-                <!-- Single Payment Input -->
-                @if ($paymentMethod !== 'split')
+                {{-- Digital Wallet / Third-Party Provider View --}}
+                @if ($paymentMethod === 'digital')
+                  <div class="p-3 border rounded bg-light-subtle mb-3">
+                    <label class="form-label small fw-bold text-dark mb-2">Select Digital Wallet Provider</label>
+                    <div class="row g-2 mb-3">
+                      <div class="col-6 col-md-3">
+                        <button type="button" wire:click="$set('digitalProvider', 'jazzcash')" class="btn btn-sm w-100 py-2 border {{ $digitalProvider === 'jazzcash' ? 'bg-warning bg-opacity-25 border-warning fw-bold text-dark' : 'bg-white text-muted' }}">
+                          🟠 JazzCash
+                        </button>
+                      </div>
+                      <div class="col-6 col-md-3">
+                        <button type="button" wire:click="$set('digitalProvider', 'easypaisa')" class="btn btn-sm w-100 py-2 border {{ $digitalProvider === 'easypaisa' ? 'bg-success bg-opacity-25 border-success fw-bold text-dark' : 'bg-white text-muted' }}">
+                          🟢 EasyPaisa
+                        </button>
+                      </div>
+                      <div class="col-6 col-md-3">
+                        <button type="button" wire:click="$set('digitalProvider', 'nayapay')" class="btn btn-sm w-100 py-2 border {{ $digitalProvider === 'nayapay' ? 'bg-info bg-opacity-25 border-info fw-bold text-dark' : 'bg-white text-muted' }}">
+                          🔵 NayaPay
+                        </button>
+                      </div>
+                      <div class="col-6 col-md-3">
+                        <button type="button" wire:click="$set('digitalProvider', 'raast')" class="btn btn-sm w-100 py-2 border {{ $digitalProvider === 'raast' ? 'bg-primary bg-opacity-25 border-primary fw-bold text-dark' : 'bg-white text-muted' }}">
+                          🟣 Raast QR
+                        </button>
+                      </div>
+                    </div>
+
+                    {{-- Channel Toggle: Push Request vs Dynamic QR --}}
+                    <div class="d-flex gap-2 mb-3">
+                      <button type="button" wire:click="$set('digitalPaymentChannel', 'push_request')" class="btn btn-xs btn-sm flex-fill py-1 {{ $digitalPaymentChannel === 'push_request' ? 'btn-dark' : 'btn-outline-secondary' }}">
+                        <i class="bi bi-phone me-1"></i> Mobile Push Prompt
+                      </button>
+                      <button type="button" wire:click="$set('digitalPaymentChannel', 'dynamic_qr')" class="btn btn-xs btn-sm flex-fill py-1 {{ $digitalPaymentChannel === 'dynamic_qr' ? 'btn-dark' : 'btn-outline-secondary' }}">
+                        <i class="bi bi-qr-code me-1"></i> Dynamic QR Scan
+                      </button>
+                    </div>
+
+                    {{-- Push Request Form --}}
+                    @if ($digitalPaymentChannel === 'push_request')
+                      <div class="mb-2">
+                        <label class="form-label small fw-semibold">Customer Wallet Number</label>
+                        <div class="input-group input-group-sm">
+                          <span class="input-group-text bg-white"><i class="bi bi-telephone"></i></span>
+                          <input type="text" wire:model.defer="customerWalletMobile" class="form-control" placeholder="03001234567">
+                          <button type="button" wire:click="initiateDigitalPayment" class="btn btn-primary px-3">
+                            <i class="bi bi-send me-1"></i> Send Prompt
+                          </button>
+                        </div>
+                        <div class="form-text small">Dispatches an instant USSD or App MPIN authorization request to the customer.</div>
+                      </div>
+                    @else
+                      {{-- Dynamic QR Generation --}}
+                      <div class="text-center py-2">
+                        @if ($generatedQrPayload)
+                          <div class="p-3 bg-white border rounded d-inline-block shadow-sm mb-2">
+                            <div class="font-monospace small text-dark p-2 bg-light border rounded" style="word-break: break-all; max-width: 280px;">
+                              <i class="bi bi-qr-code fs-1 d-block text-primary mb-1"></i>
+                              <span class="fw-bold text-uppercase">{{ $digitalProvider }} Dynamic QR</span><br>
+                              <span class="text-muted" style="font-size: 0.7rem;">Amount: Rs. {{ number_format($grandTotal, 2) }}</span>
+                            </div>
+                          </div>
+                          <div class="small text-muted">Customer scans this QR code with their banking app to pay.</div>
+                        @else
+                          <button type="button" wire:click="initiateDigitalPayment" class="btn btn-sm btn-primary px-3">
+                            <i class="bi bi-qr-code me-1"></i> Generate Dynamic Payment QR
+                          </button>
+                        @endif
+                      </div>
+                    @endif
+
+                    {{-- Transaction & Status Feedback --}}
+                    @if ($digitalPaymentState !== 'idle')
+                      <div class="alert small mb-2 border-0 {{ $digitalPaymentState === 'approved' ? 'alert-success' : ($digitalPaymentState === 'failed' ? 'alert-danger' : 'alert-warning') }}">
+                        <div class="d-flex align-items-center justify-content-between">
+                          <span>
+                            @if ($digitalPaymentState === 'approved')
+                              <i class="bi bi-check-circle-fill me-1 text-success"></i>
+                            @elseif ($digitalPaymentState === 'failed')
+                              <i class="bi bi-x-circle-fill me-1 text-danger"></i>
+                            @else
+                              <span class="spinner-border spinner-border-sm me-1"></span>
+                            @endif
+                            {{ $digitalPaymentMessage }}
+                          </span>
+                          <button type="button" wire:click="resetDigitalPayment" class="btn btn-xs btn-link text-muted p-0 ms-2">Reset</button>
+                        </div>
+                      </div>
+                    @endif
+
+                    {{-- Testing & Sandbox Interactive Simulator Widget --}}
+                    <div class="p-2 border rounded bg-white mt-3">
+                      <div class="d-flex justify-content-between align-items-center mb-1">
+                        <span class="small fw-bold text-muted"><i class="bi bi-tools text-warning me-1"></i>Testing Simulator Sandbox</span>
+                        <span class="badge bg-warning-subtle text-warning border border-warning-subtle" style="font-size: 0.65rem;">Simulated Test Triggers</span>
+                      </div>
+                      <div class="d-flex flex-wrap gap-1 mt-2">
+                        <button type="button" wire:click="simulateDigitalApproval" class="btn btn-xs btn-sm btn-success flex-fill py-1 fw-semibold">
+                          <i class="bi bi-check2-circle me-1"></i> Simulate Approved
+                        </button>
+                        <button type="button" wire:click="simulateDigitalFailure('Customer entered incorrect MPIN')" class="btn btn-xs btn-sm btn-outline-danger flex-fill py-1">
+                          <i class="bi bi-x-circle me-1"></i> Simulate Declined
+                        </button>
+                        <button type="button" wire:click="simulateDigitalTimeout" class="btn btn-xs btn-sm btn-outline-secondary flex-fill py-1">
+                          <i class="bi bi-hourglass-bottom me-1"></i> Timeout
+                        </button>
+                      </div>
+                    </div>
+
+                    {{-- Transaction Reference / TID input --}}
+                    <div class="mt-3">
+                      <label class="form-label small fw-semibold">Gateway Transaction ID (TID / Auth Code)</label>
+                      <input type="text" wire:model.defer="paymentReference" class="form-control form-control-sm font-monospace fw-bold" placeholder="e.g. JC-TX-849201">
+                    </div>
+                  </div>
+                @endif
+
+                <!-- Single Payment Input (Non-digital, non-split) -->
+                @if ($paymentMethod !== 'split' && $paymentMethod !== 'digital')
                   <div class="mb-3">
                     <label class="form-label small fw-semibold">Amount Tendered</label>
                     <input type="number" wire:model.live="tenderedAmount" class="form-control form-control-lg text-end fw-bold" step="0.01">
@@ -694,7 +822,7 @@
                     </div>
                   @endif
 
-                @else
+                @elseif ($paymentMethod === 'split')
                   <!-- Split Payment Rows -->
                   <div class="mb-3">
                     <div class="d-flex justify-content-between align-items-center mb-2">
@@ -703,14 +831,18 @@
                     </div>
                     @foreach ($splitPayments as $pIndex => $pRow)
                       <div class="d-flex gap-2 mb-2 align-items-center">
-                        <select wire:model.defer="splitPayments.{{ $pIndex }}.method" class="form-select form-select-sm" style="width: 110px;">
+                        <select wire:model.defer="splitPayments.{{ $pIndex }}.method" class="form-select form-select-sm" style="width: 120px;">
                           <option value="cash">Cash</option>
                           <option value="card">Card</option>
                           <option value="bank">Bank</option>
+                          <option value="jazzcash">JazzCash</option>
+                          <option value="easypaisa">EasyPaisa</option>
+                          <option value="nayapay">NayaPay</option>
+                          <option value="raast">Raast QR</option>
                           <option value="credit">Credit</option>
                         </select>
                         <input type="number" wire:model.defer="splitPayments.{{ $pIndex }}.amount" class="form-control form-control-sm text-end" placeholder="Amount" step="0.01">
-                        <input type="text" wire:model.defer="splitPayments.{{ $pIndex }}.reference" class="form-control form-control-sm" placeholder="Ref/Slip #">
+                        <input type="text" wire:model.defer="splitPayments.{{ $pIndex }}.reference" class="form-control form-control-sm" placeholder="Ref/TID #">
                         @if (count($splitPayments) > 1)
                           <button type="button" wire:click="removeSplitPaymentRow({{ $pIndex }})" class="btn btn-sm text-danger p-0"><i class="bi bi-trash"></i></button>
                         @endif
@@ -795,157 +927,163 @@
             <h6 class="modal-title fw-bold">Customer Receipt</h6>
             <button type="button" class="btn-close" wire:click="closeReceiptModal"></button>
           </div>
-          <div class="modal-body p-3" id="printableReceipt" style="font-family: monospace; font-size: 13px;">
+          <div class="modal-body p-3" id="printableReceipt" style="font-family: 'Courier New', Courier, monospace, 'Noto Nastaliq Urdu', 'Jameel Noori Nastaleeq'; font-size: 14px; font-weight: 600; line-height: 1.35;">
             <!-- Header -->
-            <div class="text-center mb-3">
-              <img src="{{ \App\Models\SystemSetting::logoUrl() }}" style="max-height: 40px; max-width: 140px; object-fit: contain; margin-bottom: 4px;" alt="Logo"><br>
-              <h5 class="fw-bold mb-0 text-uppercase">{{ \App\Models\SystemSetting::get('restaurant_name', 'FOOD POINT RESTAURANT') }}</h5>
+            <div class="text-center mb-2">
+              <img src="{{ \App\Models\SystemSetting::logoUrl() }}" style="max-height: 48px; max-width: 140px; object-fit: contain; margin-bottom: 4px;" alt="Logo"><br>
+              <h5 class="fw-bold mb-0 text-uppercase" style="font-size: 18px; font-weight: 900; letter-spacing: 0.5px;">{{ \App\Models\SystemSetting::get('restaurant_name', 'FOOD POINT RESTAURANT') }}</h5>
               @if (\App\Models\SystemSetting::get('tagline'))
-                <div class="small">{{ \App\Models\SystemSetting::get('tagline') }}</div>
+                <div style="font-size: 12px; font-weight: bold;">{{ \App\Models\SystemSetting::get('tagline') }}</div>
               @endif
               @if (\App\Models\SystemSetting::get('restaurant_address'))
-                <div class="small">{{ \App\Models\SystemSetting::get('restaurant_address') }}</div>
+                <div style="font-size: 12px;">{{ \App\Models\SystemSetting::get('restaurant_address') }}</div>
               @endif
               @if (\App\Models\SystemSetting::get('restaurant_phone'))
-                <div class="small">Tel: {{ \App\Models\SystemSetting::get('restaurant_phone') }}</div>
+                <div style="font-size: 12px; font-weight: bold;">Tel: {{ \App\Models\SystemSetting::get('restaurant_phone') }}</div>
               @endif
               @if (\App\Models\SystemSetting::get('ntn_number') || \App\Models\SystemSetting::get('strn_number'))
-                <div style="font-size: 10px;">
+                <div style="font-size: 11px;">
                   @if (\App\Models\SystemSetting::get('ntn_number')) NTN: {{ \App\Models\SystemSetting::get('ntn_number') }} @endif
                   @if (\App\Models\SystemSetting::get('strn_number')) | STRN: {{ \App\Models\SystemSetting::get('strn_number') }} @endif
                 </div>
               @endif
-              <div class="mt-2 border-top border-bottom py-1 fw-bold">
+              <div class="mt-2 py-1 fw-bold" style="border: 2px solid #000; font-size: 15px; display: inline-block; padding: 2px 8px; margin: 4px 0;">
                 *** {{ $completedOrder->order_type }} RECEIPT ***
               </div>
             </div>
 
             <!-- Meta Info -->
-            <div class="mb-2 small">
+            <div class="mb-2" style="border-top: 1.5px dashed #000; border-bottom: 1.5px dashed #000; padding: 4px 0;">
               <div class="d-flex justify-content-between">
                 <span>Order #:</span>
-                <strong>{{ $completedOrder->order_number }}</strong>
+                <strong style="font-size: 16px;">{{ $completedOrder->order_number }}</strong>
               </div>
-              <div class="d-flex justify-content-between">
+              <div class="d-flex justify-content-between" style="font-size: 13px;">
                 <span>Date:</span>
                 <span>{{ $completedOrder->finalized_at?->format('d/m/Y H:i') }}</span>
               </div>
               @if ($completedOrder->table_name)
-                <div class="d-flex justify-content-between">
-                  <span>Table:</span>
-                  <strong>{{ $completedOrder->table_name }}</strong>
+                <div class="d-flex justify-content-between fw-bold">
+                  <span style="font-size: 14px;">Table:</span>
+                  <strong style="font-size: 17px;">{{ $completedOrder->table_name }}</strong>
                 </div>
               @endif
               @if ($completedOrder->customer_name)
-                <div class="d-flex justify-content-between">
+                <div class="d-flex justify-content-between" style="font-size: 13px;">
                   <span>Customer:</span>
-                  <span>{{ $completedOrder->customer_name }}</span>
+                  <strong>{{ $completedOrder->customer_name }}</strong>
                 </div>
               @endif
               @if ($completedOrder->customer_phone)
-                <div class="d-flex justify-content-between">
+                <div class="d-flex justify-content-between" style="font-size: 13px;">
                   <span>Phone:</span>
-                  <span>{{ $completedOrder->customer_phone }}</span>
+                  <strong>{{ $completedOrder->customer_phone }}</strong>
                 </div>
               @endif
               @if ($completedOrder->order_type === 'DELIVERY')
                 @if ($completedOrder->deliveryArea)
-                  <div class="d-flex justify-content-between">
+                  <div class="d-flex justify-content-between" style="font-size: 13px;">
                     <span>Area:</span>
-                    <span>{{ $completedOrder->deliveryArea->name }}</span>
+                    <strong>{{ $completedOrder->deliveryArea->name }}</strong>
                   </div>
                 @endif
                 @if ($completedOrder->rider)
-                  <div class="d-flex justify-content-between">
+                  <div class="d-flex justify-content-between" style="font-size: 13px;">
                     <span>Rider:</span>
-                    <span>{{ $completedOrder->rider->name }} ({{ $completedOrder->rider->vehicle_number }})</span>
+                    <strong>{{ $completedOrder->rider->name }} ({{ $completedOrder->rider->vehicle_number }})</strong>
                   </div>
                 @endif
                 @if ($completedOrder->customer_address)
-                  <div class="small mt-1 p-1 bg-light rounded">
-                    <strong>Address:</strong> {{ $completedOrder->customer_address }}
+                  <div class="mt-1 p-1 bg-light rounded" style="font-size: 12px; font-weight: bold;">
+                    <strong>Drop-off Address:</strong> {{ $completedOrder->customer_address }}
                   </div>
                 @endif
               @endif
               @if ($completedOrder->fbr_invoice_number)
-                <div class="d-flex justify-content-between text-truncate">
+                <div class="d-flex justify-content-between text-truncate" style="font-size: 12px;">
                   <span>FBR Inv:</span>
-                  <span style="font-size: 11px;">{{ $completedOrder->fbr_invoice_number }}</span>
+                  <span>{{ $completedOrder->fbr_invoice_number }}</span>
                 </div>
               @endif
             </div>
 
             <!-- Items Table -->
-            <table class="w-100 border-top border-bottom my-2 py-1" style="font-size: 12px;">
+            <table class="w-100 my-2" style="font-size: 14px; border-collapse: collapse;">
               <thead>
-                <tr>
-                  <th class="text-start">Item</th>
-                  <th class="text-center">Qty</th>
-                  <th class="text-end">Price</th>
-                  <th class="text-end">Total</th>
+                <tr style="border-bottom: 1.5px dashed #000;">
+                  <th class="text-start py-1" style="font-weight: bold;">ITEM</th>
+                  <th class="text-center py-1" style="width: 38px; font-weight: bold;">QTY</th>
+                  <th class="text-end py-1" style="width: 55px; font-weight: bold;">PRICE</th>
+                  <th class="text-end py-1" style="width: 65px; font-weight: bold;">TOTAL</th>
                 </tr>
               </thead>
               <tbody>
                 @foreach ($completedOrder->items as $i)
-                  <tr>
-                    <td class="text-start py-1">
-                      {{ $i->product_name }}
+                  <tr style="border-bottom: 1px dashed #ccc;">
+                    <td class="text-start py-1.5">
+                      <div class="fw-bold" style="font-size: 15px;">{{ $i->product_name }}</div>
+                      @php
+                        $urduName = $i->product_name_ur ?? $i->product?->name_ur;
+                      @endphp
+                      @if ($urduName)
+                        <div style="font-family: 'Noto Nastaliq Urdu', 'Jameel Noori Nastaleeq', 'Urdu Typesetting', Tahoma, sans-serif; font-size: 15px; font-weight: bold; direction: rtl; text-align: right; line-height: 1.4;">{{ $urduName }}</div>
+                      @endif
                       @php
                         $dealModel = $i->deal ?? \App\Models\Deal::where('product_id', $i->product_id)->with('items.product')->first();
                       @endphp
                       @if ($dealModel && $dealModel->items->isNotEmpty())
-                        <div style="font-size: 11px; color: #555; margin-top: 1px;">
+                        <div style="font-size: 12px; font-weight: bold; color: #333; margin-top: 2px;">
                           @foreach ($dealModel->items as $dItem)
                             <div>↳ {{ (int)($dItem->quantity * $i->quantity) }}x {{ $dItem->product?->name }}</div>
                           @endforeach
                         </div>
                       @endif
                       @if ($i->notes)
-                        <div style="font-size: 10px; color: #666;">({{ $i->notes }})</div>
+                        <div style="font-size: 11px; font-weight: bold; background: #000; color: #fff; padding: 1px 4px; display: inline-block; margin-top: 2px;">* {{ $i->notes }}</div>
                       @endif
                     </td>
-                    <td class="text-center py-1">{{ (int)$i->quantity }}</td>
-                    <td class="text-end py-1">{{ number_format($i->unit_price) }}</td>
-                    <td class="text-end py-1">{{ number_format($i->subtotal) }}</td>
+                    <td class="text-center py-1.5 fw-bold" style="font-size: 16px; vertical-align: top;">{{ (int)$i->quantity }}</td>
+                    <td class="text-end py-1.5" style="font-size: 14px; vertical-align: top;">{{ number_format($i->unit_price) }}</td>
+                    <td class="text-end py-1.5 fw-bold" style="font-size: 15px; vertical-align: top;">{{ number_format($i->subtotal) }}</td>
                   </tr>
                 @endforeach
               </tbody>
             </table>
 
             <!-- Financial Totals -->
-            <div class="small mb-3">
+            <div class="mb-3" style="font-size: 14px;">
               <div class="d-flex justify-content-between">
                 <span>Subtotal:</span>
-                <span>Rs. {{ number_format($completedOrder->subtotal, 2) }}</span>
+                <span class="fw-bold">Rs. {{ number_format($completedOrder->subtotal, 2) }}</span>
               </div>
               @if ($completedOrder->discount_amount > 0)
                 <div class="d-flex justify-content-between">
                   <span>Discount:</span>
-                  <span>- Rs. {{ number_format($completedOrder->discount_amount, 2) }}</span>
+                  <span class="fw-bold text-danger">- Rs. {{ number_format($completedOrder->discount_amount, 2) }}</span>
                 </div>
               @endif
               @if ($completedOrder->delivery_charge > 0)
                 <div class="d-flex justify-content-between">
                   <span>Delivery Charge:</span>
-                  <span>+ Rs. {{ number_format($completedOrder->delivery_charge, 2) }}</span>
+                  <span class="fw-bold">+ Rs. {{ number_format($completedOrder->delivery_charge, 2) }}</span>
                 </div>
               @endif
               @if ($completedOrder->tax_amount > 0)
                 <div class="d-flex justify-content-between">
                   <span>Tax:</span>
-                  <span>+ Rs. {{ number_format($completedOrder->tax_amount, 2) }}</span>
+                  <span class="fw-bold">+ Rs. {{ number_format($completedOrder->tax_amount, 2) }}</span>
                 </div>
               @endif
-              <div class="d-flex justify-content-between fw-bold fs-6 border-top pt-1 mt-1">
-                <span>Total Amount:</span>
+              <div class="d-flex justify-content-between fw-bold py-1 my-1" style="font-size: 19px; border-top: 2px dashed #000; border-bottom: 2px dashed #000;">
+                <span>TOTAL:</span>
                 <span>Rs. {{ number_format($completedOrder->grand_total, 2) }}</span>
               </div>
-              <div class="d-flex justify-content-between">
+              <div class="d-flex justify-content-between" style="font-size: 14px;">
                 <span>Amount Paid:</span>
-                <span>Rs. {{ number_format($completedOrder->paid_amount, 2) }}</span>
+                <span class="fw-bold">Rs. {{ number_format($completedOrder->paid_amount, 2) }}</span>
               </div>
               @if ($completedOrder->balance_amount > 0)
-                <div class="d-flex justify-content-between text-danger fw-bold">
+                <div class="d-flex justify-content-between text-danger fw-bold" style="font-size: 16px;">
                   <span>Balance Due:</span>
                   <span>Rs. {{ number_format($completedOrder->balance_amount, 2) }}</span>
                 </div>
@@ -953,9 +1091,9 @@
             </div>
 
             <!-- Footer -->
-            <div class="text-center small border-top pt-2" style="font-size: 11px;">
-              <div>*** THANK YOU! ***</div>
-              <div>{{ \App\Models\SystemSetting::get('invoice_footer_note', 'Please visit again!') }}</div>
+            <div class="text-center pt-2" style="font-size: 12px; font-weight: bold; border-top: 1.5px dashed #000;">
+              <div style="font-size: 14px;">*** THANK YOU! ***</div>
+              <div style="margin-top: 3px;">{{ \App\Models\SystemSetting::get('invoice_footer_note', 'Please visit again!') }}</div>
             </div>
           </div>
           <div class="modal-footer no-print d-flex flex-column gap-2 p-2">

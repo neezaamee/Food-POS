@@ -11,11 +11,13 @@ use App\Models\DeliveryRider;
 use App\Models\Kot;
 use App\Models\KotItem;
 use App\Models\Order;
+use App\Models\PaymentGatewayTransaction;
 use App\Models\Product;
 use App\Models\RestaurantTable;
 use App\Models\SystemSetting;
 use App\Models\TableSection;
 use App\Services\Cash\CashShiftService;
+use App\Services\Payments\PaymentManager;
 use App\Services\Restaurant\TableService;
 use App\Services\Sales\OrderService;
 use App\Services\Sales\PaymentService;
@@ -80,9 +82,24 @@ class PosScreen extends Component
 
     public $tenderedAmount = 0.00;
 
-    public string $paymentMethod = 'cash'; // cash, card, bank, credit, split
+    public string $paymentMethod = 'cash'; // cash, card, bank, credit, split, digital
 
     public string $paymentReference = '';
+
+    // Digital Wallet / Third-Party Gateway State
+    public string $digitalProvider = 'jazzcash'; // jazzcash, easypaisa, nayapay, raast, simulator
+
+    public string $customerWalletMobile = '';
+
+    public string $digitalPaymentChannel = 'push_request'; // push_request, dynamic_qr
+
+    public string $digitalPaymentState = 'idle'; // idle, pending_prompt, approved, failed
+
+    public string $digitalPaymentMessage = '';
+
+    public ?string $activeGatewayTxRef = null;
+
+    public ?string $generatedQrPayload = null;
 
     // Split Payment Rows: [ ['method' => 'cash', 'amount' => 1000, 'reference' => ''], ... ]
     public array $splitPayments = [];
@@ -734,6 +751,13 @@ class PosScreen extends Component
 
     public function updatedDiscountRate($value): void
     {
+        if ((float) $value > 0 && ! auth()->user()?->can('pos.discount')) {
+            $this->discountRate = 0;
+            $this->notify('You do not have authorization to apply discounts.', 'danger');
+
+            return;
+        }
+
         if ($value === '' || $value === null || ! is_numeric($value)) {
             $this->discountRate = 0;
         } else {
@@ -906,6 +930,11 @@ class PosScreen extends Component
         $this->tenderedAmount = $grandTotal;
         $this->paymentMethod = 'cash';
         $this->paymentReference = '';
+        $this->customerWalletMobile = $this->customerPhone ?: '';
+        $this->digitalPaymentState = 'idle';
+        $this->digitalPaymentMessage = '';
+        $this->activeGatewayTxRef = null;
+        $this->generatedQrPayload = null;
         $this->splitPayments = [
             ['method' => 'cash', 'amount' => $grandTotal, 'reference' => ''],
         ];
@@ -933,6 +962,105 @@ class PosScreen extends Component
         $this->splitPayments = array_values($this->splitPayments);
     }
 
+    // Initiate digital wallet payment (Push request or QR code)
+    public function initiateDigitalPayment()
+    {
+        $grandTotal = $this->calculateGrandTotal();
+
+        if ($this->digitalPaymentChannel === 'push_request' && empty($this->customerWalletMobile)) {
+            $this->notify('Please provide customer mobile number for the digital push prompt.', 'danger');
+
+            return;
+        }
+
+        try {
+            $paymentManager = app(PaymentManager::class);
+            $tempOrderNumber = 'POS-'.now()->format('ymdHis');
+
+            $result = $paymentManager->initiatePayment(
+                provider: $this->digitalProvider,
+                amount: $grandTotal,
+                mobileNumber: $this->customerWalletMobile ?: '03001234567',
+                orderNumber: $tempOrderNumber,
+                channel: $this->digitalPaymentChannel,
+                meta: ['source' => 'pos_live']
+            );
+
+            $this->activeGatewayTxRef = $result['transaction_id'] ?? null;
+            $this->digitalPaymentMessage = $result['message'] ?? 'Payment prompt dispatched.';
+
+            if ($this->digitalPaymentChannel === 'dynamic_qr') {
+                $this->generatedQrPayload = $result['qr_data'] ?? null;
+                $this->digitalPaymentState = 'pending_prompt';
+            } else {
+                $this->digitalPaymentState = ($result['status'] === 'completed') ? 'approved' : 'pending_prompt';
+            }
+
+            if (($result['status'] ?? '') === 'completed') {
+                $this->paymentReference = $this->activeGatewayTxRef;
+                $this->tenderedAmount = $grandTotal;
+            }
+        } catch (Exception $e) {
+            $this->digitalPaymentState = 'failed';
+            $this->digitalPaymentMessage = 'Gateway error: '.$e->getMessage();
+            $this->notify($this->digitalPaymentMessage, 'danger');
+        }
+    }
+
+    // Simulate instant customer approval in testing/sandbox mode
+    public function simulateDigitalApproval()
+    {
+        if (empty($this->activeGatewayTxRef)) {
+            $this->activeGatewayTxRef = strtoupper(substr($this->digitalProvider, 0, 2)).'-SIM-'.rand(100000, 999999);
+        }
+
+        $paymentManager = app(PaymentManager::class);
+        $paymentManager->completeTransaction($this->activeGatewayTxRef, [
+            'simulated_status' => 'APPROVED',
+            'simulated_by' => auth()->user()?->name ?? 'Cashier',
+        ]);
+
+        $this->paymentReference = $this->activeGatewayTxRef;
+        $this->tenderedAmount = $this->calculateGrandTotal();
+        $this->digitalPaymentState = 'approved';
+        $this->digitalPaymentMessage = "Payment of Rs. {$this->tenderedAmount} APPROVED via simulated {$this->digitalProvider} (TID: {$this->paymentReference})!";
+        $this->notify($this->digitalPaymentMessage, 'success');
+    }
+
+    // Simulate customer rejection or insufficient funds
+    public function simulateDigitalFailure(string $reason = 'Customer entered incorrect MPIN')
+    {
+        if ($this->activeGatewayTxRef) {
+            $paymentManager = app(PaymentManager::class);
+            $paymentManager->failTransaction($this->activeGatewayTxRef, $reason);
+        }
+
+        $this->digitalPaymentState = 'failed';
+        $this->digitalPaymentMessage = "Transaction Failed: {$reason}";
+        $this->notify($this->digitalPaymentMessage, 'danger');
+    }
+
+    // Simulate prompt timeout
+    public function simulateDigitalTimeout()
+    {
+        if ($this->activeGatewayTxRef) {
+            $paymentManager = app(PaymentManager::class);
+            $paymentManager->timeoutTransaction($this->activeGatewayTxRef);
+        }
+
+        $this->digitalPaymentState = 'failed';
+        $this->digitalPaymentMessage = 'Transaction Timed Out (Customer did not respond).';
+        $this->notify($this->digitalPaymentMessage, 'warning');
+    }
+
+    public function resetDigitalPayment()
+    {
+        $this->digitalPaymentState = 'idle';
+        $this->digitalPaymentMessage = '';
+        $this->activeGatewayTxRef = null;
+        $this->generatedQrPayload = null;
+    }
+
     // Complete Checkout / Cash Out
     public function processCheckout()
     {
@@ -941,6 +1069,12 @@ class PosScreen extends Component
         }
 
         if (! $this->validateCustomerDetails()) {
+            return;
+        }
+
+        if ($this->paymentMethod === 'credit' && ! auth()->user()?->can('pos.credit-sale')) {
+            $this->notify('You do not have authorization to process credit sales.', 'danger');
+
             return;
         }
 
@@ -960,12 +1094,18 @@ class PosScreen extends Component
                 $paidAmt = (float) $this->tenderedAmount;
                 // If paid more than total in cash, paid is capped to total, change is given
                 $actualRecordedPaid = min($grandTotal, $paidAmt);
+                $methodToRecord = ($this->paymentMethod === 'digital') ? $this->digitalProvider : $this->paymentMethod;
                 $paymentService->recordPayment(
                     $order,
-                    $this->paymentMethod,
+                    $methodToRecord,
                     $actualRecordedPaid,
                     $this->paymentReference
                 );
+
+                if ($this->activeGatewayTxRef) {
+                    PaymentGatewayTransaction::where('transaction_reference', $this->activeGatewayTxRef)
+                        ->update(['order_id' => $order->id, 'order_number' => $order->order_number]);
+                }
             }
 
             // 3. Finalize Order (Posts Accounting, Deducts Stock, Releases Table)
@@ -1165,6 +1305,12 @@ class PosScreen extends Component
 
     public function cancelOpenOrder(int $orderId)
     {
+        if (! auth()->user()?->can('pos.cancel-order')) {
+            $this->notify('You do not have authorization to cancel orders.', 'danger');
+
+            return;
+        }
+
         try {
             $order = Order::findOrFail($orderId);
             if ($order->isFinalized()) {
@@ -1194,6 +1340,12 @@ class PosScreen extends Component
     // Table Transfer
     public function openTableTransfer()
     {
+        if (! auth()->user()?->can('pos.table-transfer')) {
+            $this->notify('You do not have authorization to transfer tables.', 'danger');
+
+            return;
+        }
+
         if (! $this->selectedTableId || ! $this->currentOrderId) {
             $this->notify('Please save the Dine-In order to a table first.', 'warning');
 
@@ -1205,6 +1357,12 @@ class PosScreen extends Component
 
     public function executeTableTransfer()
     {
+        if (! auth()->user()?->can('pos.table-transfer')) {
+            $this->notify('You do not have authorization to transfer tables.', 'danger');
+
+            return;
+        }
+
         if (! $this->transferToTableId) {
             $this->notify('Please select a destination table.', 'danger');
 

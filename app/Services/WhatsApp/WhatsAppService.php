@@ -2,6 +2,7 @@
 
 namespace App\Services\WhatsApp;
 
+use App\Models\Customer;
 use App\Models\Deal;
 use App\Models\Order;
 use App\Models\SystemSetting;
@@ -335,5 +336,101 @@ class WhatsAppService
         $cleanPhone = $this->normalizePhoneNumber($phone);
 
         return 'https://wa.me/'.$cleanPhone.'?text='.rawurlencode($message);
+    }
+
+    /**
+     * Dispatch customer balance statement via WhatsApp.
+     * First verifies WhatsApp connection. If disconnected, returns structured error with fallback url.
+     */
+    public function sendCustomerBalanceStatement(Customer $customer, string $phone, ?array $summary = null): array
+    {
+        $message = $this->formatCustomerBalanceMessage($customer, $summary);
+        $cleanPhone = $this->normalizePhoneNumber($phone);
+        $fallbackUrl = $this->getWhatsAppWebUrl($cleanPhone, $message);
+
+        // 1. Firstly check WhatsApp integration connection state
+        $status = $this->getStatus();
+        if (! ($status['connected'] ?? false)) {
+            return [
+                'ok' => false,
+                'connected' => false,
+                'error' => 'WhatsApp integration is not connected. Please scan the QR code and pair your WhatsApp device in Settings > WhatsApp first.',
+                'fallback_url' => $fallbackUrl,
+                'message' => $message,
+            ];
+        }
+
+        // 2. Dispatch message
+        $sendResult = $this->sendMessage($cleanPhone, $message);
+        $sendResult['connected'] = true;
+        $sendResult['message'] = $message;
+
+        return $sendResult;
+    }
+
+    /**
+     * Format a clean, professional customer ledger balance statement for WhatsApp.
+     */
+    public function formatCustomerBalanceMessage(Customer $customer, ?array $summary = null): string
+    {
+        $currency = SystemSetting::get('currency', 'Rs.');
+        $restName = SystemSetting::get('restaurant_name', 'FOOD POINT RESTAURANT');
+        $tagline = SystemSetting::get('tagline', '');
+        $address = SystemSetting::get('restaurant_address', '');
+        $phone = SystemSetting::get('restaurant_phone', '');
+
+        $opening = $summary['opening_balance'] ?? (float) $customer->opening_balance;
+        $invoiced = $summary['total_invoiced'] ?? null;
+        $paid = $summary['total_paid'] ?? null;
+        $returns = $summary['total_returns'] ?? null;
+        $remaining = $summary['remaining_balance'] ?? $customer->calculateOutstandingBalance();
+
+        $lines = [];
+        $lines[] = "🍽️ *{$restName}*";
+        if ($tagline) {
+            $lines[] = "_{$tagline}_";
+        }
+        if ($address || $phone) {
+            $meta = array_filter([$address, $phone ? "Tel: {$phone}" : null]);
+            $lines[] = implode(' | ', $meta);
+        }
+
+        $lines[] = '━━━━━━━━━━━━━━━━━━━━';
+        $lines[] = '📋 *CUSTOMER ACCOUNT STATEMENT*';
+        $lines[] = "👤 *Customer:* *{$customer->name}*";
+        $lines[] = '📱 *Mobile:* '.($customer->mobile ?: 'N/A');
+        $lines[] = '📅 *Date:* '.now()->format('d/m/Y h:i A');
+        $lines[] = '━━━━━━━━━━━━━━━━━━━━';
+
+        $lines[] = "• Opening Balance: {$currency} ".number_format($opening, 2);
+
+        if ($invoiced !== null) {
+            $lines[] = "• Total Invoiced: {$currency} ".number_format((float) $invoiced, 2);
+        }
+
+        if ($paid !== null) {
+            $lines[] = "• Total Paid / Receipts: {$currency} ".number_format((float) $paid, 2);
+        }
+
+        if ($returns !== null && (float) $returns > 0) {
+            $lines[] = "• Returns / Credits: - {$currency} ".number_format((float) $returns, 2);
+        }
+
+        $lines[] = '━━━━━━━━━━━━━━━━━━━━';
+        $lines[] = "💰 *NET REMAINING BALANCE:* *{$currency} ".number_format($remaining, 2).'*';
+        $lines[] = '━━━━━━━━━━━━━━━━━━━━';
+
+        if ($remaining > 0.01) {
+            $lines[] = "⚠️ _Please clear your pending balance of {$currency} ".number_format($remaining, 2).' at your earliest convenience._';
+        } elseif ($remaining < -0.01) {
+            $lines[] = "✨ _You have an advance credit balance of {$currency} ".number_format(abs($remaining), 2).'._';
+        } else {
+            $lines[] = '✅ _Your account is fully cleared. Thank you!_';
+        }
+
+        $lines[] = '';
+        $lines[] = SystemSetting::get('invoice_footer_note', 'Thank you for your business! Please visit again.');
+
+        return implode("\n", $lines);
     }
 }

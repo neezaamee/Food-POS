@@ -66,6 +66,7 @@ class ProductController extends Controller
             'sale_price' => $hasVariants ? 'nullable|numeric|min:0' : 'required|numeric|min:0',
             'cost_price' => 'nullable|numeric|min:0',
             'opening_stock' => 'nullable|numeric|min:0',
+            'image' => 'nullable|image|mimes:jpeg,png,jpg,webp,gif|max:4096',
             'has_variants' => 'nullable|boolean',
             'variants' => $hasVariants ? 'required|array|min:1' : 'nullable|array',
             'variants.*.name' => 'required_if:has_variants,1|string|max:50',
@@ -76,7 +77,19 @@ class ProductController extends Controller
             return back()->with('error', 'You have reached the maximum product limit allowed by your subscription plan. Please upgrade to add more products.');
         }
 
-        return DB::transaction(function () use ($request, $hasVariants) {
+        $imagePath = null;
+        if ($request->hasFile('image')) {
+            $file = $request->file('image');
+            $fileName = time().'_'.uniqid().'.'.$file->getClientOriginalExtension();
+            $destination = public_path('uploads/products');
+            if (! file_exists($destination)) {
+                mkdir($destination, 0755, true);
+            }
+            $file->move($destination, $fileName);
+            $imagePath = 'uploads/products/'.$fileName;
+        }
+
+        return DB::transaction(function () use ($request, $hasVariants, $imagePath) {
             $parent = Product::create([
                 'name' => $request->name,
                 'name_ur' => $request->name_ur,
@@ -89,6 +102,7 @@ class ProductController extends Controller
                 'unit_id' => $request->unit_id,
                 'cost_price' => $request->cost_price ?: 0.00,
                 'sale_price' => $request->sale_price ?: 0.00,
+                'image' => $imagePath,
                 'current_stock' => $request->opening_stock ?: 0,
                 'min_stock' => $request->min_stock ?: 5,
                 'prep_time_minutes' => $request->prep_time_minutes ?: 15,
@@ -133,6 +147,7 @@ class ProductController extends Controller
                         'unit_id' => $parent->unit_id,
                         'cost_price' => $varCost,
                         'sale_price' => $varPrice,
+                        'image' => $imagePath,
                         'current_stock' => 0,
                         'min_stock' => $parent->min_stock,
                         'prep_time_minutes' => $parent->prep_time_minutes,
@@ -170,9 +185,31 @@ class ProductController extends Controller
             'type' => 'nullable|in:menu_item,raw_material,standard',
             'sale_price' => 'required|numeric|min:0',
             'cost_price' => 'required|numeric|min:0',
+            'image' => 'nullable|image|mimes:jpeg,png,jpg,webp,gif|max:4096',
         ]);
 
-        $product->update($request->only('name', 'name_ur', 'type', 'sale_price', 'cost_price', 'category_id', 'min_stock', 'prep_time_minutes'));
+        $data = $request->only('name', 'name_ur', 'type', 'sale_price', 'cost_price', 'category_id', 'min_stock', 'prep_time_minutes');
+
+        if ($request->boolean('remove_image')) {
+            if ($product->image && file_exists(public_path($product->image))) {
+                @unlink(public_path($product->image));
+            }
+            $data['image'] = null;
+        } elseif ($request->hasFile('image')) {
+            if ($product->image && file_exists(public_path($product->image))) {
+                @unlink(public_path($product->image));
+            }
+            $file = $request->file('image');
+            $fileName = time().'_'.uniqid().'.'.$file->getClientOriginalExtension();
+            $destination = public_path('uploads/products');
+            if (! file_exists($destination)) {
+                mkdir($destination, 0755, true);
+            }
+            $file->move($destination, $fileName);
+            $data['image'] = 'uploads/products/'.$fileName;
+        }
+
+        $product->update($data);
 
         return back()->with('success', "Product '{$product->name}' updated successfully!");
     }

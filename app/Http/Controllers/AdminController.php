@@ -40,7 +40,7 @@ class AdminController extends Controller
         }
 
         $users = $query->paginate(15)->withQueryString();
-        $roles = Role::whereNotIn('slug', ['super-admin', 'super_admin'])->get();
+        $roles = Role::forTenant($tenantId)->whereNotIn('slug', ['super-admin', 'super_admin'])->get();
 
         return view('admin.users.index', compact('users', 'roles'));
     }

@@ -46,7 +46,7 @@ class DayCloseController extends Controller
             ->sum('amount');
 
         $digitalSales = (float) OrderPayment::whereIn('order_id', $orderIds)
-            ->whereIn('payment_method', ['bank', 'card', 'digital'])
+            ->whereIn('payment_method', ['bank', 'card', 'digital', 'jazzcash', 'easypaisa', 'nayapay', 'raast', 'wallet'])
             ->sum('amount');
 
         $creditSales = (float) $completedOrders->sum('balance_amount');
@@ -135,7 +135,7 @@ class DayCloseController extends Controller
             ->sum('amount');
 
         $digitalSales = (float) OrderPayment::whereIn('order_id', $orderIds)
-            ->whereIn('payment_method', ['bank', 'card', 'digital'])
+            ->whereIn('payment_method', ['bank', 'card', 'digital', 'jazzcash', 'easypaisa', 'nayapay', 'raast', 'wallet'])
             ->sum('amount');
 
         $creditSales = (float) $completedOrders->sum('balance_amount');

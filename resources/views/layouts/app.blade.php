@@ -326,25 +326,33 @@
         </li>
 
         <!-- POS / Operations Heading -->
+        @canany(['pos.access', 'orders.view', 'cash.shifts', 'cash.day-close'])
         <li class="nav-heading"><span>POS & Operations</span></li>
+        @can('pos.access')
         <li class="nav-item">
           <a class="nav-link {{ request()->routeIs('pos.index') ? 'active' : '' }}" href="{{ route('pos.index') }}" data-tooltip="Live POS">
             <i class="ph-duotone ph-storefront"></i>
             <span>Live POS</span>
           </a>
         </li>
+        @endcan
+        @can('orders.view')
         <li class="nav-item">
-          <a class="nav-link {{ request()->routeIs('orders.*') ? 'active' : '' }}" href="{{ route('orders.index') }}" data-tooltip="Orders & Invoices">
+          <a class="nav-link {{ request()->routeIs('orders.*') && !request()->routeIs('orders.returns.*') ? 'active' : '' }}" href="{{ route('orders.index') }}" data-tooltip="Orders & Invoices">
             <i class="ph-duotone ph-receipt"></i>
             <span>Orders / Invoices</span>
           </a>
         </li>
+        @endcan
+        @canany(['pos.refund', 'orders.returns', 'orders.view'])
         <li class="nav-item">
           <a class="nav-link {{ request()->routeIs('orders.returns.*') ? 'active' : '' }}" href="{{ route('orders.returns.index') }}" data-tooltip="Sale Returns">
             <i class="ph-duotone ph-arrow-counter-clockwise"></i>
             <span>Sale Returns</span>
           </a>
         </li>
+        @endcanany
+        @canany(['cash.shifts', 'cash.day-close'])
         <li class="nav-item has-submenu {{ request()->routeIs('cash.*') ? 'open' : '' }}">
           <a class="nav-link" href="#" aria-expanded="{{ request()->routeIs('cash.*') ? 'true' : 'false' }}" data-tooltip="Cash & Shifts">
             <i class="ph-duotone ph-vault"></i>
@@ -352,12 +360,19 @@
             <i class="ph-duotone ph-caret-down nav-arrow"></i>
           </a>
           <ul class="nav-submenu">
+            @can('cash.shifts')
             <li><a class="nav-link {{ request()->routeIs('cash.shifts*') ? 'active' : '' }}" href="{{ route('cash.shifts') }}">Cashier Shifts</a></li>
+            @endcan
+            @can('cash.day-close')
             <li><a class="nav-link {{ request()->routeIs('cash.day-close*') ? 'active' : '' }}" href="{{ route('cash.day-close.index') }}"><i class="bi bi-calendar-check me-1 text-primary"></i> Day Close & Z-Report</a></li>
+            @endcan
           </ul>
         </li>
+        @endcanany
+        @endcanany
 
         @if($isSuperAdmin || $featureService->allows($currentTenant, 'pos.dine_in'))
+        @canany(['tables.manage', 'kitchen.view', 'delivery.manage'])
         <!-- Restaurant Operations -->
         <li class="nav-heading"><span>Restaurant</span></li>
         <li class="nav-item has-submenu {{ request()->routeIs('restaurant.*') ? 'open' : '' }}">
@@ -367,16 +382,24 @@
             <i class="ph-duotone ph-caret-down nav-arrow"></i>
           </a>
           <ul class="nav-submenu">
+            @can('tables.manage')
             <li><a class="nav-link {{ request()->routeIs('restaurant.tables') ? 'active' : '' }}" href="{{ route('restaurant.tables') }}">Tables & Sections</a></li>
+            @endcan
+            @can('kitchen.view')
             <li><a class="nav-link {{ request()->routeIs('restaurant.kitchen') ? 'active' : '' }}" href="{{ route('restaurant.kitchen') }}">Kitchen Display (KOT)</a></li>
+            @endcan
             @if($isSuperAdmin || $featureService->allows($currentTenant, 'pos.delivery'))
+            @can('delivery.manage')
             <li><a class="nav-link {{ request()->routeIs('restaurant.delivery') ? 'active' : '' }}" href="{{ route('restaurant.delivery') }}">Delivery Areas</a></li>
             <li><a class="nav-link {{ request()->routeIs('restaurant.riders') ? 'active' : '' }}" href="{{ route('restaurant.riders') }}">Delivery Riders</a></li>
+            @endcan
             @endif
           </ul>
         </li>
+        @endcanany
         @endif
 
+        @canany(['products.manage', 'deals.manage', 'categories.manage', 'customers.manage'])
         <!-- Catalog / Resources -->
         <li class="nav-heading"><span>Catalog & Resources</span></li>
         <li class="nav-item has-submenu {{ request()->routeIs('resources.*') ? 'open' : '' }}">
@@ -386,16 +409,26 @@
             <i class="ph-duotone ph-caret-down nav-arrow"></i>
           </a>
           <ul class="nav-submenu">
+            @can('products.manage')
             <li><a class="nav-link {{ request()->routeIs('resources.products.*') ? 'active' : '' }}" href="{{ route('resources.products.index') }}">Products / Menu Items</a></li>
+            @endcan
+            @canany(['deals.manage', 'products.manage'])
             <li><a class="nav-link {{ request()->routeIs('resources.deals.*') ? 'active' : '' }}" href="{{ route('resources.deals.index') }}"><i class="ph-duotone ph-package me-1 text-primary"></i> Packages & Deals</a></li>
+            @endcanany
+            @canany(['categories.manage', 'products.manage'])
             <li><a class="nav-link {{ request()->routeIs('resources.categories.*') ? 'active' : '' }}" href="{{ route('resources.categories.index') }}">Categories</a></li>
             <li><a class="nav-link {{ request()->routeIs('resources.brands.*') ? 'active' : '' }}" href="{{ route('resources.brands.index') }}">Brands</a></li>
             <li><a class="nav-link {{ request()->routeIs('resources.units.*') ? 'active' : '' }}" href="{{ route('resources.units.index') }}">Units</a></li>
+            @endcanany
+            @can('customers.manage')
             <li><a class="nav-link {{ request()->routeIs('resources.customers.*') ? 'active' : '' }}" href="{{ route('resources.customers.index') }}">Customers</a></li>
+            @endcan
           </ul>
         </li>
+        @endcanany
 
         @if($isSuperAdmin || $featureService->allows($currentTenant, 'inventory.management'))
+        @can('inventory.manage')
         <!-- Inventory -->
         <li class="nav-heading"><span>Inventory</span></li>
         <li class="nav-item has-submenu {{ request()->routeIs('inventory.*') ? 'open' : '' }}">
@@ -411,9 +444,11 @@
             <li><a class="nav-link {{ request()->routeIs('inventory.purchases') ? 'active' : '' }}" href="{{ route('inventory.purchases') }}">Purchases</a></li>
           </ul>
         </li>
+        @endcan
         @endif
 
         @if($isSuperAdmin || $featureService->allows($currentTenant, 'accounting.ledger'))
+        @can('accounting.access')
         <!-- Finance & Accounting -->
         <li class="nav-heading"><span>Finance & Accounting</span></li>
         <li class="nav-item has-submenu {{ request()->routeIs('finance.*') ? 'open' : '' }}">
@@ -431,9 +466,11 @@
             <li><a class="nav-link {{ request()->routeIs('finance.trial-balance') ? 'active' : '' }}" href="{{ route('finance.trial-balance') }}">Trial Balance</a></li>
           </ul>
         </li>
+        @endcan
         @endif
 
         @if($isSuperAdmin || $featureService->allows($currentTenant, 'reports.sales'))
+        @can('reports.view')
         <!-- Reports -->
         <li class="nav-heading"><span>Reports</span></li>
         <li class="nav-item has-submenu {{ request()->routeIs('reports.*') ? 'open' : '' }}">
@@ -453,44 +490,74 @@
             <li><a class="nav-link {{ request()->routeIs('reports.customer-ledger') ? 'active' : '' }}" href="{{ route('reports.customer-ledger') }}">Customer Ledger</a></li>
           </ul>
         </li>
+        @endcan
         @endif
 
+        @canany(['users.manage', 'roles.manage', 'settings.access', 'fbr.access', 'audit.view'])
         <!-- Administration -->
         <li class="nav-heading"><span>Administration</span></li>
-        <li class="nav-item">
-          <a class="nav-link {{ request()->routeIs('users.*') ? 'active' : '' }}" href="{{ route('users.index') }}" data-tooltip="Users">
+        @canany(['users.manage', 'roles.manage'])
+        <li class="nav-item has-submenu {{ request()->routeIs('users.*') || request()->routeIs('roles.*') ? 'open' : '' }}">
+          <a class="nav-link" href="#" aria-expanded="{{ request()->routeIs('users.*') || request()->routeIs('roles.*') ? 'true' : 'false' }}" data-tooltip="Users & Roles">
             <i class="ph-duotone ph-users"></i>
             <span>Users & Roles</span>
+            <i class="ph-duotone ph-caret-down nav-arrow"></i>
           </a>
+          <ul class="nav-submenu">
+            @can('users.manage')
+            <li><a class="nav-link {{ request()->routeIs('users.*') ? 'active' : '' }}" href="{{ route('users.index') }}"><i class="ph-duotone ph-user-list me-1 text-primary"></i> Staff Accounts</a></li>
+            @endcan
+            @can('roles.manage')
+            <li><a class="nav-link {{ request()->routeIs('roles.*') ? 'active' : '' }}" href="{{ route('roles.index') }}"><i class="ph-duotone ph-shield-check me-1 text-success"></i> Roles & Permissions</a></li>
+            @endcan
+          </ul>
         </li>
+        @endcanany
+        @can('settings.access')
         <li class="nav-item">
           <a class="nav-link {{ request()->routeIs('settings.*') ? 'active' : '' }}" href="{{ route('settings.index') }}" data-tooltip="Settings">
             <i class="ph-duotone ph-gear"></i>
             <span>System Settings</span>
           </a>
         </li>
+        @endcan
         @if($isSuperAdmin || $featureService->allows($currentTenant, 'compliance.fbr'))
+        @can('fbr.access')
         <li class="nav-item">
           <a class="nav-link {{ request()->routeIs('fbr.*') ? 'active' : '' }}" href="{{ route('fbr.index') }}" data-tooltip="FBR Digital Invoicing">
             <i class="ph-duotone ph-shield-check"></i>
             <span>FBR Digital Invoicing</span>
           </a>
         </li>
+        @endcan
         @endif
         @if($isSuperAdmin || $featureService->allows($currentTenant, 'marketing.whatsapp'))
+        @can('settings.access')
         <li class="nav-item">
           <a class="nav-link {{ request()->routeIs('admin.whatsapp.*') || request()->routeIs('whatsapp.*') ? 'active' : '' }}" href="{{ route('admin.whatsapp.index') }}" data-tooltip="WhatsApp Integration">
             <i class="bi bi-whatsapp"></i>
             <span>WhatsApp Integration</span>
           </a>
         </li>
+        @endcan
         @endif
+        @can('settings.access')
+        <li class="nav-item">
+          <a class="nav-link {{ request()->routeIs('admin.payments.*') || request()->routeIs('payment-gateways.*') ? 'active' : '' }}" href="{{ route('admin.payments.index') }}" data-tooltip="Payment Gateways">
+            <i class="ph-duotone ph-credit-card"></i>
+            <span>Payment Gateways</span>
+          </a>
+        </li>
+        @endcan
+        @can('audit.view')
         <li class="nav-item">
           <a class="nav-link {{ request()->routeIs('audit-logs.*') ? 'active' : '' }}" href="{{ route('audit-logs.index') }}" data-tooltip="Audit Logs">
             <i class="ph-duotone ph-fingerprint"></i>
             <span>Audit Trail</span>
           </a>
         </li>
+        @endcan
+        @endcanany
       </ul>
     </nav>
   </aside>

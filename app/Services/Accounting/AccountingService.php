@@ -103,7 +103,7 @@ class AccountingService
             }
 
             $totalPaid += $amt;
-            $destAcc = ($payment->payment_method === 'bank' || $payment->payment_method === 'card' || $payment->payment_method === 'digital')
+            $destAcc = in_array(strtolower($payment->payment_method), ['bank', 'card', 'digital', 'jazzcash', 'easypaisa', 'nayapay', 'raast', 'wallet'])
                 ? $bankAcc->id
                 : $cashAcc->id;
 
@@ -315,7 +315,7 @@ class AccountingService
                 continue;
             }
 
-            $destAcc = ($payment->payment_method === 'bank' || $payment->payment_method === 'card' || $payment->payment_method === 'digital')
+            $destAcc = in_array(strtolower($payment->payment_method), ['bank', 'card', 'digital', 'jazzcash', 'easypaisa', 'nayapay', 'raast', 'wallet'])
                 ? $bankAcc->id
                 : $cashAcc->id;
 

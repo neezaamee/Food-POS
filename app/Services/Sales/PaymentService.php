@@ -28,8 +28,9 @@ class PaymentService
                 throw new Exception("Non-cash payment amount ({$amount}) cannot exceed order balance ({$currentBalance}).");
             }
 
-            // Map method to ledger account
-            $accountCode = ($method === 'bank' || $method === 'card' || $method === 'digital') ? '1120' : '1110';
+            // Map method to ledger account (1120 Bank/Digital Assets vs 1110 Cash in Hand)
+            $isDigitalOrBank = in_array(strtolower($method), ['bank', 'card', 'digital', 'jazzcash', 'easypaisa', 'nayapay', 'raast', 'wallet']);
+            $accountCode = $isDigitalOrBank ? '1120' : '1110';
             $account = Account::where('tenant_id', $order->tenant_id)->where('code', $accountCode)->first()
                 ?? Account::where('code', $accountCode)->first();
 

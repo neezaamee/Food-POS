@@ -45,6 +45,21 @@ class Product extends Model
         'has_variants' => 'boolean',
     ];
 
+    protected $appends = ['image_url'];
+
+    public function getImageUrlAttribute(): ?string
+    {
+        if (! $this->image) {
+            return null;
+        }
+
+        if (str_starts_with($this->image, 'http://') || str_starts_with($this->image, 'https://')) {
+            return $this->image;
+        }
+
+        return asset($this->image);
+    }
+
     public function parent()
     {
         return $this->belongsTo(Product::class, 'parent_id');

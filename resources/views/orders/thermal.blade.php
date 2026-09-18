@@ -15,9 +15,10 @@
       box-sizing: border-box;
     }
     body {
-      font-family: 'Courier New', Courier, monospace;
-      font-size: 13px;
-      line-height: 1.3;
+      font-family: 'Courier New', Courier, monospace, 'Noto Nastaliq Urdu', 'Jameel Noori Nastaleeq';
+      font-size: 14px;
+      font-weight: 600;
+      line-height: 1.35;
       margin: 0;
       padding: 24px 10px;
       color: #000;
@@ -48,13 +49,31 @@
     .text-end { text-align: right; }
     .text-start { text-align: left; }
     .fw-bold { font-weight: bold; }
-    .border-top { border-top: 1px dashed #000; }
-    .border-bottom { border-bottom: 1px dashed #000; }
+    .border-top { border-top: 1.5px dashed #000; }
+    .border-bottom { border-bottom: 1.5px dashed #000; }
+    .border-thick { border-top: 2px dashed #000; border-bottom: 2px dashed #000; }
     .my-1 { margin-top: 4px; margin-bottom: 4px; }
     .my-2 { margin-top: 8px; margin-bottom: 8px; }
     .py-1 { padding-top: 4px; padding-bottom: 4px; }
-    table { width: 100%; border-collapse: collapse; table-layout: fixed; }
-    th, td { font-size: 12px; }
+    table { width: 100%; border-collapse: collapse; }
+    .urdu-text {
+      font-family: 'Noto Nastaliq Urdu', 'Jameel Noori Nastaleeq', 'Urdu Typesetting', Tahoma, sans-serif;
+      font-size: 15px;
+      font-weight: bold;
+      direction: rtl;
+      text-align: right;
+      line-height: 1.5;
+    }
+    .badge-receipt {
+      display: inline-block;
+      border: 2px solid #000;
+      padding: 3px 8px;
+      font-size: 15px;
+      font-weight: 900;
+      margin: 4px 0;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
     .no-print {
       display: flex;
       align-items: center;
@@ -84,6 +103,8 @@
         margin: 0 !important;
         width: 80mm !important;
         display: block !important;
+        font-family: 'Courier New', Courier, monospace, 'Noto Nastaliq Urdu', 'Jameel Noori Nastaleeq' !important;
+        color: #000 !important;
       }
       .receipt-paper {
         width: 80mm !important;
@@ -120,122 +141,136 @@
 
   <div class="text-center">
     <img src="{{ \App\Models\SystemSetting::logoUrl() }}" class="receipt-logo" alt="{{ $restName }}"><br>
-    <h2 style="margin: 0; font-size: 17px; text-transform: uppercase;">{{ $restName }}</h2>
+    <h2 style="margin: 0; font-size: 19px; font-weight: 900; letter-spacing: 0.5px; text-transform: uppercase;">{{ $restName }}</h2>
     @if ($tagline)
-      <div style="font-size: 11px;">{{ $tagline }}</div>
+      <div style="font-size: 12px; font-weight: bold;">{{ $tagline }}</div>
     @endif
     @if ($address)
-      <div style="font-size: 11px;">{{ $address }}</div>
+      <div style="font-size: 12px;">{{ $address }}</div>
     @endif
     @if ($phone)
-      <div style="font-size: 11px;">Tel: {{ $phone }}</div>
+      <div style="font-size: 12px; font-weight: bold;">Tel: {{ $phone }}</div>
     @endif
     @if ($ntn || $strn)
-      <div style="font-size: 10px;">
+      <div style="font-size: 11px;">
         @if ($ntn) NTN: {{ $ntn }} @endif
         @if ($strn) | STRN: {{ $strn }} @endif
       </div>
     @endif
   </div>
 
-  <div class="border-top border-bottom py-1 my-2 text-center fw-bold">
+  <div class="text-center my-2">
     @if (! $order->isFinalized() || $order->payment_status !== 'paid')
-      *** {{ $order->order_type }} - UNPAID BILL ***
-      <div style="font-size: 11px; margin-top: 2px;">(PAYMENT PENDING)</div>
+      <div class="badge-receipt">
+        *** {{ $order->order_type }} - UNPAID BILL ***
+      </div>
+      <div style="font-size: 13px; font-weight: 900;">(PAYMENT PENDING)</div>
     @else
-      *** {{ $order->order_type }} RECEIPT ***
+      <div class="badge-receipt">
+        *** {{ $order->order_type }} RECEIPT ***
+      </div>
     @endif
   </div>
 
-  <table>
-    <tr>
-      <td>Order #:</td>
-      <td class="text-end fw-bold">{{ $order->order_number }}</td>
-    </tr>
-    <tr>
-      <td>Date:</td>
-      <td class="text-end">{{ $order->created_at->format('d/m/Y H:i') }}</td>
-    </tr>
-    @if ($order->table_name)
-    <tr>
-      <td>Table:</td>
-      <td class="text-end fw-bold">{{ $order->table_name }}</td>
-    </tr>
-    @endif
-    @if ($order->customer_name)
-    <tr>
-      <td>Customer:</td>
-      <td class="text-end">{{ $order->customer_name }}</td>
-    </tr>
-    @endif
-    @if ($order->customer_phone)
-    <tr>
-      <td>Phone:</td>
-      <td class="text-end">{{ $order->customer_phone }}</td>
-    </tr>
-    @endif
-    @if ($order->order_type === 'DELIVERY')
-      @if ($order->deliveryArea)
+  <div class="border-top border-bottom py-1 my-2">
+    <table>
       <tr>
-        <td>Area:</td>
-        <td class="text-end">{{ $order->deliveryArea->name }}</td>
+        <td style="font-size: 14px;">Order #:</td>
+        <td class="text-end fw-bold" style="font-size: 17px;">{{ $order->order_number }}</td>
+      </tr>
+      <tr>
+        <td style="font-size: 13px;">Date:</td>
+        <td class="text-end" style="font-size: 13px;">{{ $order->created_at->format('d/m/Y H:i') }}</td>
+      </tr>
+      @if ($order->table_name)
+      <tr>
+        <td class="fw-bold" style="font-size: 15px;">Table:</td>
+        <td class="text-end fw-bold" style="font-size: 18px;">{{ $order->table_name }}</td>
       </tr>
       @endif
-      @if ($order->rider)
+      @if ($order->customer_name)
       <tr>
-        <td>Rider:</td>
-        <td class="text-end">{{ $order->rider->name }} ({{ $order->rider->vehicle_number }})</td>
+        <td style="font-size: 13px;">Customer:</td>
+        <td class="text-end fw-bold" style="font-size: 14px;">{{ $order->customer_name }}</td>
       </tr>
       @endif
-      @if ($order->customer_address)
+      @if ($order->customer_phone)
       <tr>
-        <td colspan="2" style="font-size: 11px; padding-top: 3px;">
-          <strong>Address:</strong> {{ $order->customer_address }}
-        </td>
+        <td style="font-size: 13px;">Phone:</td>
+        <td class="text-end fw-bold" style="font-size: 14px;">{{ $order->customer_phone }}</td>
       </tr>
       @endif
-    @endif
-    @if ($order->cashier)
-    <tr>
-      <td>Cashier:</td>
-      <td class="text-end">{{ $order->cashier->name }}</td>
-    </tr>
-    @endif
-  </table>
+      @if ($order->order_type === 'DELIVERY')
+        @if ($order->deliveryArea)
+        <tr>
+          <td style="font-size: 13px;">Area:</td>
+          <td class="text-end fw-bold" style="font-size: 14px;">{{ $order->deliveryArea->name }}</td>
+        </tr>
+        @endif
+        @if ($order->rider)
+        <tr>
+          <td style="font-size: 13px;">Rider:</td>
+          <td class="text-end fw-bold" style="font-size: 14px;">{{ $order->rider->name }} ({{ $order->rider->vehicle_number }})</td>
+        </tr>
+        @endif
+        @if ($order->customer_address)
+        <tr>
+          <td colspan="2" style="font-size: 13px; font-weight: bold; padding-top: 3px;">
+            <strong>Drop-off Address:</strong> {{ $order->customer_address }}
+          </td>
+        </tr>
+        @endif
+      @endif
+      @if ($order->cashier)
+      <tr>
+        <td style="font-size: 13px;">Cashier:</td>
+        <td class="text-end" style="font-size: 13px;">{{ $order->cashier->name }}</td>
+      </tr>
+      @endif
+    </table>
+  </div>
 
-  <div class="border-top my-1"></div>
-
-  <table>
+  <table class="my-1">
     <thead>
       <tr class="border-bottom">
-        <th class="text-start">Item</th>
-        <th class="text-center" style="width: 30px;">Qty</th>
-        <th class="text-end" style="width: 50px;">Price</th>
-        <th class="text-end" style="width: 60px;">Total</th>
+        <th class="text-start py-1" style="font-size: 14px; font-weight: bold;">ITEM</th>
+        <th class="text-center py-1" style="width: 38px; font-size: 14px; font-weight: bold;">QTY</th>
+        <th class="text-end py-1" style="width: 55px; font-size: 14px; font-weight: bold;">PRICE</th>
+        <th class="text-end py-1" style="width: 65px; font-size: 14px; font-weight: bold;">TOTAL</th>
       </tr>
     </thead>
     <tbody>
       @foreach ($order->items as $item)
-      <tr>
-        <td class="text-start">
-          {{ $item->product_name }}
+      <tr class="border-bottom">
+        <td class="text-start py-2">
+          <div class="fw-bold" style="font-size: 15px;">{{ $item->product_name }}</div>
+          @php
+            $urduName = $item->product_name_ur ?? $item->product?->name_ur;
+          @endphp
+          @if ($urduName)
+            <div class="urdu-text">{{ $urduName }}</div>
+          @endif
           @php
             $dealModel = $item->deal ?? \App\Models\Deal::where('product_id', $item->product_id)->with('items.product')->first();
           @endphp
           @if ($dealModel && $dealModel->items->isNotEmpty())
-            <div style="font-size: 10px; color: #333; margin-top: 2px;">
+            <div style="font-size: 12px; font-weight: bold; margin-top: 2px;">
               @foreach ($dealModel->items as $dItem)
                 <div>↳ {{ (int)($dItem->quantity * $item->quantity) }}x {{ $dItem->product?->name }}</div>
               @endforeach
             </div>
           @endif
           @if ($item->notes)
-            <div style="font-size: 10px; font-style: italic;">* {{ $item->notes }}</div>
+            <div style="font-size: 12px; font-weight: bold; background: #000; color: #fff; padding: 1px 4px; display: inline-block; margin-top: 2px;">
+              * {{ $item->notes }}
+            </div>
           @endif
         </td>
-        <td class="text-center">{{ (int) $item->quantity == $item->quantity ? (int) $item->quantity : $item->quantity }}</td>
-        <td class="text-end">{{ number_format($item->unit_price) }}</td>
-        <td class="text-end">{{ number_format($item->subtotal) }}</td>
+        <td class="text-center py-2 fw-bold" style="font-size: 17px; vertical-align: top;">
+          {{ (int) $item->quantity == $item->quantity ? (int) $item->quantity : $item->quantity }}
+        </td>
+        <td class="text-end py-2" style="font-size: 14px; vertical-align: top;">{{ number_format($item->unit_price) }}</td>
+        <td class="text-end py-2 fw-bold" style="font-size: 15px; vertical-align: top;">{{ number_format($item->subtotal) }}</td>
       </tr>
       @endforeach
     </tbody>
@@ -245,50 +280,63 @@
 
   <table>
     <tr>
-      <td>Subtotal:</td>
-      <td class="text-end">{{ $currency }} {{ number_format($order->subtotal, 2) }}</td>
+      <td style="font-size: 14px;">Subtotal:</td>
+      <td class="text-end fw-bold" style="font-size: 14px;">{{ $currency }} {{ number_format($order->subtotal, 2) }}</td>
     </tr>
     @if ($order->discount_amount > 0)
     <tr>
-      <td>Discount:</td>
-      <td class="text-end">- {{ $currency }} {{ number_format($order->discount_amount, 2) }}</td>
+      <td style="font-size: 14px;">Discount:</td>
+      <td class="text-end fw-bold" style="font-size: 14px;">- {{ $currency }} {{ number_format($order->discount_amount, 2) }}</td>
     </tr>
     @endif
     @if ($order->delivery_charge > 0)
     <tr>
-      <td>Delivery Fee:</td>
-      <td class="text-end">+ {{ $currency }} {{ number_format($order->delivery_charge, 2) }}</td>
+      <td style="font-size: 14px;">Delivery Fee:</td>
+      <td class="text-end fw-bold" style="font-size: 14px;">+ {{ $currency }} {{ number_format($order->delivery_charge, 2) }}</td>
     </tr>
     @endif
     @if ($order->tax_amount > 0)
     <tr>
-      <td>Tax:</td>
-      <td class="text-end">+ {{ $currency }} {{ number_format($order->tax_amount, 2) }}</td>
+      <td style="font-size: 14px;">Tax:</td>
+      <td class="text-end fw-bold" style="font-size: 14px;">+ {{ $currency }} {{ number_format($order->tax_amount, 2) }}</td>
     </tr>
     @endif
-    <tr class="fw-bold" style="font-size: 15px;">
-      <td class="border-top py-1">TOTAL:</td>
-      <td class="text-end border-top py-1">{{ $currency }} {{ number_format($order->grand_total, 2) }}</td>
+    <tr class="fw-bold border-thick" style="font-size: 20px;">
+      <td class="py-1">TOTAL:</td>
+      <td class="text-end py-1">{{ $currency }} {{ number_format($order->grand_total, 2) }}</td>
     </tr>
     <tr>
-      <td>Amount Paid:</td>
-      <td class="text-end">{{ $currency }} {{ number_format($order->paid_amount, 2) }}</td>
+      <td style="font-size: 14px; padding-top: 4px;">Amount Paid:</td>
+      <td class="text-end fw-bold" style="font-size: 15px; padding-top: 4px;">{{ $currency }} {{ number_format($order->paid_amount, 2) }}</td>
     </tr>
+    @if ($order->payments->isNotEmpty())
+      @foreach ($order->payments as $pmt)
+        <tr>
+          <td style="font-size: 12px; color: #333;">Paid via {{ ucfirst($pmt->payment_method) }}:</td>
+          <td class="text-end" style="font-size: 12px;">
+            {{ $currency }} {{ number_format($pmt->amount, 2) }}
+            @if ($pmt->payment_reference)
+              <div style="font-size: 10px; font-weight: bold;">TID: {{ $pmt->payment_reference }}</div>
+            @endif
+          </td>
+        </tr>
+      @endforeach
+    @endif
     @if ($order->balance_amount > 0)
-    <tr class="fw-bold">
+    <tr class="fw-bold" style="font-size: 16px;">
       <td>Balance Due:</td>
       <td class="text-end">{{ $currency }} {{ number_format($order->balance_amount, 2) }}</td>
     </tr>
     @endif
   </table>
 
-  <div class="border-top my-2 text-center py-1" style="font-size: 11px;">
+  <div class="border-top my-2 text-center py-1">
     @if (! $order->isFinalized() || $order->payment_status !== 'paid')
-      <div class="fw-bold">*** PLEASE PAY AT COUNTER / RIDER ***</div>
+      <div class="fw-bold" style="font-size: 14px; letter-spacing: 0.5px;">*** PLEASE PAY AT COUNTER / RIDER ***</div>
     @else
-      <div>*** THANK YOU! ***</div>
+      <div class="fw-bold" style="font-size: 14px;">*** THANK YOU! ***</div>
     @endif
-    <div>{{ $footerNote }}</div>
+    <div style="font-size: 12px; margin-top: 4px;">{{ $footerNote }}</div>
   </div>
   </div> <!-- .receipt-paper -->
 

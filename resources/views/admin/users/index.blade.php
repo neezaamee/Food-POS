@@ -33,6 +33,20 @@
 </div>
 @endif
 
+<!-- Navigation Tabs -->
+<ul class="nav nav-tabs border-bottom mb-4">
+    <li class="nav-item">
+        <a class="nav-link active fw-bold border-bottom-0" href="{{ route('users.index') }}">
+            <i class="ph-duotone ph-users me-1 text-primary"></i> Staff Accounts
+        </a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link text-muted" href="{{ route('roles.index') }}">
+            <i class="ph-duotone ph-shield-check me-1"></i> Roles & Permissions Matrix
+        </a>
+    </li>
+</ul>
+
 <div class="card border-0 shadow-sm rounded-3">
     <div class="card-header bg-transparent border-0 pt-3 px-3 pb-2 d-flex flex-wrap gap-2 justify-content-between align-items-center">
         <h6 class="fw-bold mb-0">System Users ({{ $users->total() }})</h6>

@@ -9,7 +9,9 @@ use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\OrderPayment;
 use App\Models\RestaurantTable;
+use App\Models\SaleReturn;
 use App\Models\User;
+use App\Services\WhatsApp\WhatsAppService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -152,22 +154,193 @@ class ReportController extends Controller
         return view('reports.payments', compact('paymentStats', 'totalCollected'));
     }
 
-    public function customerLedger(Request $request)
+    public function customerLedger(Request $request, WhatsAppService $whatsAppService)
     {
         $customers = Customer::orderBy('name')->get();
         $selectedCustomer = null;
-        $customerOrders = collect();
+        $ledgerEntries = collect();
+        $summary = [
+            'opening_balance' => 0.00,
+            'total_invoiced' => 0.00,
+            'total_paid' => 0.00,
+            'total_returns' => 0.00,
+            'remaining_balance' => 0.00,
+        ];
+        $whatsAppStatus = $whatsAppService->getStatus();
 
         if ($request->filled('customer_id')) {
             $selectedCustomer = Customer::find($request->customer_id);
+
             if ($selectedCustomer) {
-                $customerOrders = Order::where('customer_id', $selectedCustomer->id)
-                    ->latest()
-                    ->get();
+                // Ensure current balance is synchronized
+                $selectedCustomer->syncBalance();
+
+                $initialOpening = (float) $selectedCustomer->opening_balance;
+                $fromDate = $request->input('from_date');
+                $toDate = $request->input('to_date');
+
+                // If date range is specified, calculate opening balance prior to from_date
+                if ($fromDate) {
+                    $priorOrdersDebit = (float) Order::where('customer_id', $selectedCustomer->id)
+                        ->where('order_status', '!=', 'cancelled')
+                        ->whereDate('created_at', '<', $fromDate)
+                        ->sum('grand_total');
+
+                    $priorOrdersCredit = (float) Order::where('customer_id', $selectedCustomer->id)
+                        ->where('order_status', '!=', 'cancelled')
+                        ->whereDate('created_at', '<', $fromDate)
+                        ->sum('paid_amount');
+
+                    $priorReturns = (float) SaleReturn::where('customer_id', $selectedCustomer->id)
+                        ->whereDate('created_at', '<', $fromDate)
+                        ->sum('grand_total');
+
+                    $periodOpeningBalance = $initialOpening + ($priorOrdersDebit - $priorOrdersCredit) - $priorReturns;
+                } else {
+                    $periodOpeningBalance = $initialOpening;
+                }
+
+                // Query Orders in period
+                $ordersQuery = Order::where('customer_id', $selectedCustomer->id)
+                    ->where('order_status', '!=', 'cancelled');
+
+                if ($fromDate) {
+                    $ordersQuery->whereDate('created_at', '>=', $fromDate);
+                }
+                if ($toDate) {
+                    $ordersQuery->whereDate('created_at', '<=', $toDate);
+                }
+
+                $orders = $ordersQuery->orderBy('created_at')->orderBy('id')->get();
+
+                // Query Sale Returns in period
+                $returnsQuery = SaleReturn::where('customer_id', $selectedCustomer->id);
+
+                if ($fromDate) {
+                    $returnsQuery->whereDate('created_at', '>=', $fromDate);
+                }
+                if ($toDate) {
+                    $returnsQuery->whereDate('created_at', '<=', $toDate);
+                }
+
+                $returns = $returnsQuery->orderBy('created_at')->orderBy('id')->get();
+
+                // Compile transactions into a unified chronological ledger
+                foreach ($orders as $order) {
+                    $ledgerEntries->push((object) [
+                        'id' => 'order_'.$order->id,
+                        'date' => $order->created_at,
+                        'type' => 'invoice',
+                        'type_label' => 'INVOICE ('.$order->order_type.')',
+                        'reference' => $order->order_number,
+                        'order_id' => $order->id,
+                        'description' => 'Invoice #'.$order->order_number.($order->table_name ? ' (Table: '.$order->table_name.')' : ''),
+                        'debit' => (float) $order->grand_total,
+                        'credit' => (float) $order->paid_amount,
+                        'net' => (float) ($order->grand_total - $order->paid_amount),
+                        'payment_status' => $order->payment_status,
+                    ]);
+                }
+
+                foreach ($returns as $return) {
+                    $ledgerEntries->push((object) [
+                        'id' => 'return_'.$return->id,
+                        'date' => $return->created_at,
+                        'type' => 'return',
+                        'type_label' => 'SALE RETURN',
+                        'reference' => $return->return_number,
+                        'order_id' => $return->order_id,
+                        'description' => 'Sale Return #'.$return->return_number.($return->order ? ' (Ref: '.$return->order->order_number.')' : ''),
+                        'debit' => 0.00,
+                        'credit' => (float) $return->grand_total,
+                        'net' => -((float) $return->grand_total),
+                        'payment_status' => 'refunded',
+                    ]);
+                }
+
+                // Sort chronologically
+                $ledgerEntries = $ledgerEntries->sortBy('date')->values();
+
+                // Calculate running remaining balance row-by-row
+                $runningBalance = $periodOpeningBalance;
+                $totalInvoiced = 0.00;
+                $totalPaid = 0.00;
+
+                foreach ($ledgerEntries as $entry) {
+                    $totalInvoiced += $entry->debit;
+                    $totalPaid += $entry->credit;
+                    $runningBalance += ($entry->debit - $entry->credit);
+                    $entry->remaining_balance = $runningBalance;
+                }
+
+                $summary = [
+                    'opening_balance' => $periodOpeningBalance,
+                    'total_invoiced' => (float) $orders->sum('grand_total'),
+                    'total_paid' => (float) $orders->sum('paid_amount'),
+                    'total_returns' => (float) $returns->sum('grand_total'),
+                    'remaining_balance' => $runningBalance,
+                ];
             }
         }
 
-        return view('reports.customer-ledger', compact('customers', 'selectedCustomer', 'customerOrders'));
+        return view('reports.customer-ledger', compact('customers', 'selectedCustomer', 'ledgerEntries', 'summary', 'whatsAppStatus'));
+    }
+
+    /**
+     * Share customer balance statement via WhatsApp.
+     * Verifies connection state first; returns validation error if not connected.
+     */
+    public function shareCustomerBalanceWhatsApp(Request $request, WhatsAppService $whatsAppService)
+    {
+        $request->validate([
+            'customer_id' => 'required|exists:customers,id',
+            'phone' => 'nullable|string|max:30',
+        ]);
+
+        $customer = Customer::findOrFail($request->customer_id);
+        $phone = $request->filled('phone') ? trim($request->phone) : $customer->mobile;
+
+        if (empty($phone)) {
+            return back()->with('error', 'Please provide a valid customer WhatsApp mobile number.');
+        }
+
+        // Calculate current financial summary
+        $customer->syncBalance();
+        $orders = Order::where('customer_id', $customer->id)
+            ->where('order_status', '!=', 'cancelled')
+            ->get();
+        $returns = SaleReturn::where('customer_id', $customer->id)->get();
+
+        $summary = [
+            'opening_balance' => (float) $customer->opening_balance,
+            'total_invoiced' => (float) $orders->sum('grand_total'),
+            'total_paid' => (float) $orders->sum('paid_amount'),
+            'total_returns' => (float) $returns->sum('grand_total'),
+            'remaining_balance' => (float) $customer->current_balance,
+        ];
+
+        // 1. FIRSTLY CHECK WHATSAPP CONNECTION STATUS
+        $status = $whatsAppService->getStatus();
+        if (! ($status['connected'] ?? false)) {
+            $msg = $whatsAppService->formatCustomerBalanceMessage($customer, $summary);
+            $fallbackUrl = $whatsAppService->getWhatsAppWebUrl($phone, $msg);
+            session()->flash('whatsapp_fallback_url', $fallbackUrl);
+
+            return back()->with('error', 'WhatsApp integration is not connected. Please scan the QR code and pair your WhatsApp device in Settings > WhatsApp first.');
+        }
+
+        // 2. Dispatch via WhatsApp service
+        $result = $whatsAppService->sendCustomerBalanceStatement($customer, $phone, $summary);
+
+        if (($result['ok'] ?? false) || ($result['success'] ?? false)) {
+            return back()->with('success', "Customer balance statement successfully dispatched via WhatsApp to {$phone}.");
+        }
+
+        if (! empty($result['fallback_url'])) {
+            session()->flash('whatsapp_fallback_url', $result['fallback_url']);
+        }
+
+        return back()->with('error', $result['error'] ?? 'Failed to send WhatsApp message.');
     }
 
     /**

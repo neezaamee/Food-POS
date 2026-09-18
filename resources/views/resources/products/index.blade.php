@@ -89,25 +89,36 @@
           @forelse ($products as $prod)
             <tr id="prod-row-{{ $prod->id }}">
               <td>
-                <div class="fw-bold text-heading d-flex align-items-center flex-wrap gap-1">
-                  <span>{{ $prod->name }}</span>
-                  @if ($prod->name_ur)
-                    <span class="badge bg-secondary-subtle text-dark border ms-1" style="font-family: 'Noto Nastaliq Urdu', 'Jameel Noori Nastaleeq', Tahoma, sans-serif; font-size: 0.85rem; direction: rtl;">{{ $prod->name_ur }}</span>
+                <div class="d-flex align-items-center gap-2.5">
+                  @if ($prod->image_url)
+                    <img src="{{ $prod->image_url }}" alt="{{ $prod->name }}" class="rounded border object-fit-cover flex-shrink-0" style="width: 44px; height: 44px;">
+                  @else
+                    <div class="rounded border bg-light d-flex align-items-center justify-content-center text-muted flex-shrink-0" style="width: 44px; height: 44px;">
+                      <i class="bi bi-image text-secondary opacity-50" style="font-size: 1.25rem;"></i>
+                    </div>
                   @endif
-                  @if ($prod->hasVariants())
-                    <span class="badge bg-primary-subtle text-primary border" style="font-size: 0.7rem;">
-                      <i class="bi bi-layers me-1"></i>{{ $prod->variants->count() }} Sizes
-                    </span>
-                  @endif
-                </div>
-                <div class="small text-muted">
-                  <span class="badge bg-light text-dark border me-1">{{ $prod->code }}</span>
-                  {{ $prod->unit?->name ?? 'PCS' }}
-                  @if ($prod->hasVariants())
-                    &bull; <span class="text-primary fw-medium">{{ $prod->variants->pluck('variation_name')->filter()->join(', ') }}</span>
-                  @elseif ($prod->barcode)
-                    &bull; <span class="font-monospace">{{ $prod->barcode }}</span>
-                  @endif
+                  <div class="min-w-0">
+                    <div class="fw-bold text-heading d-flex align-items-center flex-wrap gap-1">
+                      <span>{{ $prod->name }}</span>
+                      @if ($prod->name_ur)
+                        <span class="badge bg-secondary-subtle text-dark border ms-1" style="font-family: 'Noto Nastaliq Urdu', 'Jameel Noori Nastaleeq', Tahoma, sans-serif; font-size: 0.85rem; direction: rtl;">{{ $prod->name_ur }}</span>
+                      @endif
+                      @if ($prod->hasVariants())
+                        <span class="badge bg-primary-subtle text-primary border" style="font-size: 0.7rem;">
+                          <i class="bi bi-layers me-1"></i>{{ $prod->variants->count() }} Sizes
+                        </span>
+                      @endif
+                    </div>
+                    <div class="small text-muted">
+                      <span class="badge bg-light text-dark border me-1">{{ $prod->code }}</span>
+                      {{ $prod->unit?->name ?? 'PCS' }}
+                      @if ($prod->hasVariants())
+                        &bull; <span class="text-primary fw-medium">{{ $prod->variants->pluck('variation_name')->filter()->join(', ') }}</span>
+                      @elseif ($prod->barcode)
+                        &bull; <span class="font-monospace">{{ $prod->barcode }}</span>
+                      @endif
+                    </div>
+                  </div>
                 </div>
               </td>
               <td>
@@ -237,7 +248,7 @@
 <div class="modal fade" id="addProductModal" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered modal-lg">
     <div class="modal-content">
-      <form method="POST" action="{{ route('resources.products.store') }}">
+      <form method="POST" action="{{ route('resources.products.store') }}" enctype="multipart/form-data">
         @csrf
         <div class="modal-header">
           <h5 class="modal-title fw-bold">Add Catalog Item</h5>
@@ -362,6 +373,19 @@
               <label class="form-label small fw-semibold">Preparation Time (Minutes)</label>
               <input type="number" name="prep_time_minutes" class="form-control" value="15" min="1">
             </div>
+            <!-- Product Photo Upload -->
+            <div class="col-12">
+              <label class="form-label small fw-semibold">Product Photo / Image</label>
+              <div class="d-flex align-items-center gap-3">
+                <div id="add_image_preview_box" class="border rounded bg-light d-flex align-items-center justify-content-center overflow-hidden flex-shrink-0" style="width: 65px; height: 65px;">
+                  <i class="bi bi-camera text-muted fs-3"></i>
+                </div>
+                <div class="flex-grow-1">
+                  <input type="file" name="image" id="add_product_image" class="form-control form-control-sm" accept="image/*" onchange="previewProductImage(this, 'add_image_preview_box')">
+                  <div class="form-text small text-muted">Upload an image for menu & POS card display (JPG, PNG, WebP, max 4MB).</div>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
         <div class="modal-footer">
@@ -377,7 +401,7 @@
 <div class="modal fade" id="editProductModal" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered modal-lg">
     <div class="modal-content">
-      <form method="POST" id="editProductForm" action="">
+      <form method="POST" id="editProductForm" action="" enctype="multipart/form-data">
         @csrf
         @method('PUT')
         <div class="modal-header">
@@ -425,6 +449,23 @@
             <div class="col-md-6">
               <label class="form-label small fw-semibold">Prep Time (Mins)</label>
               <input type="number" name="prep_time_minutes" id="edit_prep_time_minutes" class="form-control" min="1">
+            </div>
+            <!-- Edit Product Photo -->
+            <div class="col-12">
+              <label class="form-label small fw-semibold">Product Photo / Image</label>
+              <div class="d-flex align-items-center gap-3">
+                <div id="edit_image_preview_box" class="border rounded bg-light d-flex align-items-center justify-content-center overflow-hidden flex-shrink-0" style="width: 65px; height: 65px;">
+                  <i class="bi bi-camera text-muted fs-3"></i>
+                </div>
+                <div class="flex-grow-1">
+                  <input type="file" name="image" id="edit_product_image" class="form-control form-control-sm" accept="image/*" onchange="previewProductImage(this, 'edit_image_preview_box')">
+                  <div class="form-check mt-1" id="edit_remove_image_wrapper" style="display: none;">
+                    <input class="form-check-input" type="checkbox" name="remove_image" id="edit_remove_image" value="1">
+                    <label class="form-check-label small text-danger" for="edit_remove_image">Remove current photo</label>
+                  </div>
+                  <div class="form-text small text-muted">Upload a new photo to change the current one.</div>
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -739,6 +780,18 @@ function addVariantRowInManageModal(name = '', price = '', code = '', id = null)
   tbody.appendChild(tr);
 }
 
+function previewProductImage(input, previewContainerId) {
+  const container = document.getElementById(previewContainerId);
+  if (!container) return;
+  if (input.files && input.files[0]) {
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      container.innerHTML = `<img src="${e.target.result}" style="width: 100%; height: 100%; object-fit: cover;">`;
+    };
+    reader.readAsDataURL(input.files[0]);
+  }
+}
+
 function openEditModal(prod) {
   const form = document.getElementById('editProductForm');
   form.action = `/resources/products/${prod.id}`;
@@ -751,6 +804,23 @@ function openEditModal(prod) {
   document.getElementById('edit_sale_price').value = prod.sale_price || 0;
   document.getElementById('edit_min_stock').value = prod.min_stock || 0;
   document.getElementById('edit_prep_time_minutes').value = prod.prep_time_minutes || 15;
+
+  // Image preview in edit modal
+  const editPreview = document.getElementById('edit_image_preview_box');
+  const removeWrapper = document.getElementById('edit_remove_image_wrapper');
+  const removeCheckbox = document.getElementById('edit_remove_image');
+  const imageInput = document.getElementById('edit_product_image');
+  if (imageInput) imageInput.value = '';
+  if (removeCheckbox) removeCheckbox.checked = false;
+
+  if (prod.image) {
+    const imgUrl = (prod.image.startsWith('http://') || prod.image.startsWith('https://')) ? prod.image : `/${prod.image}`;
+    editPreview.innerHTML = `<img src="${imgUrl}" style="width: 100%; height: 100%; object-fit: cover;">`;
+    if (removeWrapper) removeWrapper.style.display = 'block';
+  } else {
+    editPreview.innerHTML = `<i class="bi bi-camera text-muted fs-3"></i>`;
+    if (removeWrapper) removeWrapper.style.display = 'none';
+  }
 
   const modalEl = document.getElementById('editProductModal');
   const modal = bootstrap.Modal.getInstance(modalEl) || new bootstrap.Modal(modalEl);

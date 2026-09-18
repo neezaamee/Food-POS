@@ -70,7 +70,53 @@
     .badge-soft-danger { background-color: var(--danger-color-light, #fee2e2); color: var(--danger-color, #dc2626); }
     .badge-soft-info { background-color: var(--info-color-light, #cffafe); color: var(--info-color, #0891b2); }
 
-    /* Print styling: exact 80mm thermal receipt printing matching digital version */
+    /* Custom slim scrollbar for cart */
+    #posCartScrollContainer::-webkit-scrollbar {
+      width: 5px;
+    }
+    #posCartScrollContainer::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    #posCartScrollContainer::-webkit-scrollbar-thumb {
+      background: #cbd5e1;
+      border-radius: 4px;
+    }
+    #posCartScrollContainer::-webkit-scrollbar-thumb:hover {
+      background: #94a3b8;
+    }
+
+    /* 14-inch / Compact Screen Optimizations (viewport height <= 820px or width <= 1400px) */
+    @media (max-height: 820px) {
+      .pos-navbar {
+        min-height: 46px !important;
+        height: 46px !important;
+        padding: 0 0.5rem !important;
+      }
+      .pos-container {
+        height: calc(100vh - 46px) !important;
+      }
+      .pos-cart-header {
+        padding-top: 0.35rem !important;
+        padding-bottom: 0.35rem !important;
+      }
+      .pos-customer-strip {
+        padding-top: 0.25rem !important;
+        padding-bottom: 0.25rem !important;
+      }
+      .pos-summary-box {
+        padding: 0.4rem 0.6rem !important;
+      }
+      .pos-cart-item {
+        padding-top: 0.2rem !important;
+        padding-bottom: 0.2rem !important;
+      }
+      .pos-action-btn {
+        padding-top: 0.3rem !important;
+        padding-bottom: 0.3rem !important;
+      }
+    }
+
+    /* Print styling: exact 80mm thermal receipt printing matching KOT format */
     @page {
       margin: 0;
       size: 80mm auto;
@@ -152,9 +198,10 @@
         padding: 4mm 4mm !important;
         margin: 0 !important;
         background: #fff !important;
-        font-family: 'Courier New', Courier, monospace !important;
-        font-size: 13px !important;
-        line-height: 1.3 !important;
+        font-family: 'Courier New', Courier, monospace, 'Noto Nastaliq Urdu', 'Jameel Noori Nastaleeq' !important;
+        font-size: 14px !important;
+        font-weight: 600 !important;
+        line-height: 1.35 !important;
         color: #000 !important;
       }
 
@@ -175,15 +222,15 @@
 
       #printableReceipt table th,
       #printableReceipt table td {
-        font-size: 12px !important;
+        font-size: 14px !important;
       }
 
       #printableReceipt .border-top {
-        border-top: 1px dashed #000 !important;
+        border-top: 1.5px dashed #000 !important;
       }
 
       #printableReceipt .border-bottom {
-        border-bottom: 1px dashed #000 !important;
+        border-bottom: 1.5px dashed #000 !important;
       }
     }
   </style>

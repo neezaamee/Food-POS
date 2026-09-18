@@ -30,8 +30,51 @@ class Customer extends Model
         'is_active' => 'boolean',
     ];
 
+    protected $appends = ['balance', 'phone'];
+
+    public function getBalanceAttribute(): float
+    {
+        return (float) $this->current_balance;
+    }
+
+    public function getPhoneAttribute(): ?string
+    {
+        return $this->mobile;
+    }
+
     public function orders()
     {
         return $this->hasMany(Order::class);
+    }
+
+    public function returns()
+    {
+        return $this->hasMany(SaleReturn::class);
+    }
+
+    /**
+     * Calculate live net outstanding balance from opening balance, unpaid orders, and returns
+     */
+    public function calculateOutstandingBalance(): float
+    {
+        $opening = (float) $this->opening_balance;
+        $unpaidInvoices = (float) $this->orders()
+            ->where('order_status', '!=', 'cancelled')
+            ->selectRaw('COALESCE(SUM(grand_total - paid_amount), 0) as diff')
+            ->value('diff');
+        $returns = (float) $this->returns()->sum('grand_total');
+
+        return round($opening + $unpaidInvoices - $returns, 2);
+    }
+
+    /**
+     * Recalculate and persist current balance
+     */
+    public function syncBalance(): float
+    {
+        $this->current_balance = $this->calculateOutstandingBalance();
+        $this->save();
+
+        return (float) $this->current_balance;
     }
 }
