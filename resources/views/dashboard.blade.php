@@ -8,15 +8,21 @@
     <p class="text-muted mb-0">Here is the real-time operational overview of {{ \App\Models\SystemSetting::get('restaurant_name', 'Food Point POS') }}.</p>
   </div>
   <div class="d-flex align-items-center gap-2">
+    @can('pos.access')
     <a href="{{ route('pos.index') }}" class="btn btn-primary btn-sm px-3 py-2 fw-semibold">
       <i class="ph-duotone ph-storefront me-1"></i> Open Live POS
     </a>
+    @endcan
+    @can('kitchen.view')
     <a href="{{ route('restaurant.kitchen') }}" class="btn btn-outline-secondary btn-sm px-3 py-2">
       <i class="ph-duotone ph-fork-knife me-1"></i> Kitchen KOT
     </a>
+    @endcan
+    @can('cash.shifts')
     <a href="{{ route('cash.shifts') }}" class="btn btn-outline-secondary btn-sm px-3 py-2">
       <i class="ph-duotone ph-vault me-1"></i> Cash Drawer
     </a>
+    @endcan
   </div>
 </div>
 
@@ -173,7 +179,9 @@
 <div class="card border">
   <div class="card-header bg-transparent py-3 d-flex align-items-center justify-content-between">
     <h5 class="card-title mb-0 fs-6 fw-bold">Recent POS Orders</h5>
+    @can('orders.view')
     <a href="{{ route('orders.index') }}" class="btn btn-sm btn-outline-secondary">View All Invoices</a>
+    @endcan
   </div>
   <div class="card-body p-0">
     <div class="table-responsive">
@@ -194,9 +202,13 @@
           @forelse ($recentOrders as $order)
             <tr>
               <td class="fw-bold text-heading">
+                @can('orders.view')
                 <a href="{{ route('orders.show', $order->id) }}" class="text-decoration-none text-primary">
                   {{ $order->order_number }}
                 </a>
+                @else
+                <span>{{ $order->order_number }}</span>
+                @endcan
               </td>
               <td>
                 <span class="badge {{ $order->order_type === 'DINE_IN' ? 'bg-info' : ($order->order_type === 'DELIVERY' ? 'bg-primary' : 'bg-secondary') }}">
@@ -222,9 +234,11 @@
                 @endif
               </td>
               <td>
+                @can('orders.view')
                 <a href="{{ route('orders.show', $order->id) }}" class="btn btn-sm btn-outline-secondary py-0 px-2" style="font-size: 0.75rem;">
                   <i class="bi bi-eye"></i> View
                 </a>
+                @endcan
               </td>
             </tr>
           @empty

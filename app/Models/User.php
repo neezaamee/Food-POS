@@ -124,11 +124,19 @@ class User extends Authenticatable
             $this->roles->loadMissing('permissions');
         }
 
-        $this->cachedPermissions = $this->roles
+        $permissions = $this->roles
             ->flatMap(fn ($role) => $role->permissions)
-            ->pluck('slug')
-            ->unique()
-            ->values();
+            ->pluck('slug');
+
+        if ($permissions->isEmpty() && ! empty($this->role)) {
+            $normalizedRole = str_replace('_', '-', (string) $this->role);
+            $fallbackRole = Role::where('slug', $normalizedRole)->with('permissions')->first();
+            if ($fallbackRole) {
+                $permissions = $fallbackRole->permissions->pluck('slug');
+            }
+        }
+
+        $this->cachedPermissions = $permissions->unique()->values();
 
         return $this->cachedPermissions;
     }
@@ -139,11 +147,12 @@ class User extends Authenticatable
     public function clearPermissionCache(): void
     {
         $this->cachedPermissions = null;
+        $this->unsetRelation('roles');
     }
 
     public function hasPermission(string $permissionSlug): bool
     {
-        if ($this->isSuperAdmin() || $this->isOwner()) {
+        if ($this->isSuperAdmin()) {
             return true;
         }
 
@@ -157,7 +166,7 @@ class User extends Authenticatable
      */
     public function hasAnyPermission(array $permissionSlugs): bool
     {
-        if ($this->isSuperAdmin() || $this->isOwner()) {
+        if ($this->isSuperAdmin()) {
             return true;
         }
 
@@ -179,7 +188,7 @@ class User extends Authenticatable
      */
     public function hasAllPermissions(array $permissionSlugs): bool
     {
-        if ($this->isSuperAdmin() || $this->isOwner()) {
+        if ($this->isSuperAdmin()) {
             return true;
         }
 

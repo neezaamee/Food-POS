@@ -43,3 +43,5 @@ Homestead.yaml
 Thumbs.db
 database/*.sqlite
 database/*.sqlite-journal
+db-temp/
+*.zip

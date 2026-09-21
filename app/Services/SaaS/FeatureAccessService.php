@@ -11,6 +11,56 @@ use App\Models\TenantFeatureOverride;
 class FeatureAccessService
 {
     /**
+     * Map between feature codes, grouped sub-features, and legacy plan feature keys.
+     *
+     * @return array<int, string>
+     */
+    public static function resolveAliases(string $featureCode): array
+    {
+        $map = [
+            'inventory' => ['inventory', 'inventory.management', 'inventory.stock', 'inventory.purchases', 'inventory.recipes'],
+            'inventory.management' => ['inventory.management', 'inventory', 'inventory.stock', 'inventory.purchases', 'inventory.recipes'],
+            'inventory.stock' => ['inventory.stock', 'inventory.management', 'inventory'],
+            'inventory.recipes' => ['inventory.recipes', 'recipes', 'inventory.management', 'inventory'],
+            'inventory.purchases' => ['inventory.purchases', 'inventory.management', 'inventory'],
+            'recipes' => ['recipes', 'inventory.recipes', 'inventory'],
+
+            'accounting' => ['accounting', 'accounting.ledger', 'finance.double_entry'],
+            'accounting.ledger' => ['accounting.ledger', 'accounting', 'finance.double_entry'],
+            'finance.double_entry' => ['finance.double_entry', 'accounting.ledger', 'accounting'],
+            'finance.day_close' => ['finance.day_close', 'shifts'],
+            'shifts' => ['shifts', 'finance.day_close'],
+
+            'fbr' => ['fbr', 'compliance.fbr'],
+            'compliance.fbr' => ['compliance.fbr', 'fbr'],
+
+            'whatsapp' => ['whatsapp', 'messaging.whatsapp', 'marketing.whatsapp'],
+            'marketing.whatsapp' => ['marketing.whatsapp', 'messaging.whatsapp', 'whatsapp'],
+            'messaging.whatsapp' => ['messaging.whatsapp', 'marketing.whatsapp', 'whatsapp'],
+
+            'reports' => ['reports', 'reports.sales', 'reports.advanced'],
+            'reports.sales' => ['reports.sales', 'reports', 'reports.advanced', 'pos', 'pos.core'],
+            'reports.advanced' => ['reports.advanced', 'reports', 'reports.sales'],
+
+            'pos' => ['pos', 'pos.core'],
+            'pos.core' => ['pos.core', 'pos'],
+            'pos.dine_in' => ['pos.dine_in', 'tables', 'pos'],
+            'tables' => ['tables', 'pos.dine_in'],
+            'pos.takeaway' => ['pos.takeaway', 'takeaway', 'pos'],
+            'takeaway' => ['takeaway', 'pos.takeaway'],
+            'pos.delivery' => ['pos.delivery', 'delivery'],
+            'delivery' => ['delivery', 'pos.delivery'],
+            'pos.open_orders' => ['pos.open_orders', 'pos'],
+
+            'kitchen' => ['kitchen', 'kitchen.kds', 'kitchen.urdu'],
+            'kitchen.kds' => ['kitchen.kds', 'kitchen'],
+            'kitchen.urdu' => ['kitchen.urdu', 'kitchen'],
+        ];
+
+        return $map[$featureCode] ?? [$featureCode];
+    }
+
+    /**
      * Check if a tenant has access to a specific feature.
      * Evaluates Tenant Overrides first, then Plan features.
      */
@@ -32,11 +82,12 @@ class FeatureAccessService
             return false;
         }
 
+        $keysToCheck = static::resolveAliases($featureCode);
+
         // 1. Check explicit per-tenant override
         $override = TenantFeatureOverride::where('tenant_id', $tenant->id)
-            ->where(function ($q) use ($featureCode) {
-                $q->where('feature_key', $featureCode);
-            })
+            ->whereIn('feature_key', $keysToCheck)
+            ->orderBy('id', 'desc')
             ->first();
 
         if ($override !== null) {
@@ -54,7 +105,13 @@ class FeatureAccessService
             return false;
         }
 
-        return $plan->hasFeature($featureCode);
+        foreach ($keysToCheck as $key) {
+            if ($plan->hasFeature($key)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /**
@@ -155,10 +212,29 @@ class FeatureAccessService
         $results = [];
         foreach ($allFeatures as $feat) {
             $featKey = $feat->key ?? $feat->code;
-            $hasOverride = array_key_exists($featKey, $overrides);
-            $isEnabled = $hasOverride
-                ? (bool) $overrides[$featKey]
-                : ($isWildcard || in_array($featKey, $planFeatures, true));
+            $aliases = static::resolveAliases($featKey);
+
+            $hasOverride = false;
+            $overrideVal = false;
+            foreach ($aliases as $ak) {
+                if (array_key_exists($ak, $overrides)) {
+                    $hasOverride = true;
+                    $overrideVal = (bool) $overrides[$ak];
+                    break;
+                }
+            }
+
+            $planIncluded = $isWildcard;
+            if (! $planIncluded) {
+                foreach ($aliases as $ak) {
+                    if (in_array($ak, $planFeatures, true)) {
+                        $planIncluded = true;
+                        break;
+                    }
+                }
+            }
+
+            $isEnabled = $hasOverride ? $overrideVal : $planIncluded;
 
             $results[] = [
                 'code' => $featKey,
@@ -168,7 +244,7 @@ class FeatureAccessService
                 'description' => $feat->description,
                 'is_enabled' => $isEnabled,
                 'is_overridden' => $hasOverride,
-                'plan_included' => $isWildcard || in_array($featKey, $planFeatures, true),
+                'plan_included' => $planIncluded,
             ];
         }
 

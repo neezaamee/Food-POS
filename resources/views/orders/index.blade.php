@@ -10,9 +10,11 @@
     </nav>
   </div>
   <div>
+    @can('pos.access')
     <a href="{{ route('pos.index') }}" class="btn btn-primary btn-sm px-3 py-2 fw-semibold">
       <i class="ph-duotone ph-storefront me-1"></i> New POS Order
     </a>
+    @endcan
   </div>
 </div>
 
@@ -147,19 +149,25 @@
                     <i class="bi bi-printer"></i>
                   </a>
                   @if ($order->isFinalized())
+                    @canany(['pos.refund', 'orders.returns'])
                     <a href="{{ route('orders.show', $order->id) }}#returnModal" class="btn btn-outline-danger" title="Refund / Return Order">
                       <i class="bi bi-arrow-counter-clockwise"></i>
                     </a>
+                    @endcanany
                   @elseif ($order->order_status !== 'cancelled')
+                    @can('pos.access')
                     <a href="{{ route('pos.index', ['orderId' => $order->id]) }}" class="btn btn-primary" title="Resume in POS">
                       <i class="bi bi-play-fill"></i>
                     </a>
+                    @endcan
+                    @can('pos.cancel-order')
                     <form method="POST" action="{{ route('orders.cancel', $order->id) }}" class="d-inline" onsubmit="return confirm('Cancel Order #{{ $order->order_number }}?');">
                       @csrf
                       <button type="submit" class="btn btn-outline-danger" title="Cancel Order">
                         <i class="bi bi-x-circle"></i>
                       </button>
                     </form>
+                    @endcan
                   @endif
                 </div>
               </td>

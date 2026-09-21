@@ -32,13 +32,17 @@
       <span class="badge bg-danger fs-6 px-3 py-2"><i class="bi bi-x-circle me-1"></i> CANCELLED ORDER</span>
     @else
       @if ($order->isFinalized())
+        @canany(['pos.refund', 'orders.returns'])
         <button type="button" class="btn btn-outline-danger btn-sm px-3 py-2" data-bs-toggle="modal" data-bs-target="#returnModal">
           <i class="bi bi-arrow-counter-clockwise me-1"></i> Refund / Return Order
         </button>
+        @endcanany
       @else
+        @can('pos.access')
         <a href="{{ route('pos.index', ['orderId' => $order->id]) }}" class="btn btn-warning btn-sm px-3 py-2">
           <i class="bi bi-pencil me-1"></i> Edit in POS
         </a>
+        @endcan
       @endif
 
       @if ($isShiftClosed)
@@ -46,9 +50,11 @@
           <i class="bi bi-lock me-1"></i> Shift Closed (Non-Cancellable)
         </span>
       @elseif ($canCancel)
+        @can('pos.cancel-order')
         <button type="button" class="btn btn-danger btn-sm px-3 py-2" data-bs-toggle="modal" data-bs-target="#cancelModal">
           <i class="bi bi-x-circle me-1"></i> Cancel Order
         </button>
+        @endcan
       @endif
     @endif
   </div>
@@ -258,7 +264,7 @@
 </div>
 
 <!-- RETURN / REFUND MODAL -->
-@if ($order->isFinalized())
+@if ($order->isFinalized() && (auth()->user()?->can('orders.returns') || auth()->user()?->can('pos.refund')))
 <div class="modal fade" id="returnModal" tabindex="-1" aria-labelledby="returnModalLabel" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered modal-lg">
     <div class="modal-content">

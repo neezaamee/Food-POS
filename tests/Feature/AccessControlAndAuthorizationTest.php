@@ -121,7 +121,7 @@ class AccessControlAndAuthorizationTest extends TestCase
         $this->get(route('finance.chart-of-accounts'))->assertOk();
     }
 
-    public function test_store_owner_bypasses_store_permission_checks(): void
+    public function test_store_owner_has_store_permissions_and_respects_revoked_permissions(): void
     {
         $this->actingAs($this->owner);
 
@@ -132,6 +132,16 @@ class AccessControlAndAuthorizationTest extends TestCase
         $this->get(route('admin.users'))->assertOk();
         $this->get(route('roles.index'))->assertOk();
         $this->get(route('finance.chart-of-accounts'))->assertOk();
+
+        // When permission is detached from Store Owner role, it is strictly enforced
+        $ownerRole = Role::where('slug', 'owner')->first();
+        $rolesPerm = Permission::where('slug', 'roles.manage')->first();
+        $ownerRole->permissions()->detach($rolesPerm->id);
+        $this->owner->clearPermissionCache();
+        $this->actingAs($this->owner->fresh());
+
+        $this->assertFalse(Gate::allows('roles.manage'));
+        $this->get(route('roles.index'))->assertForbidden();
     }
 
     public function test_cashier_can_access_pos_and_shifts_but_forbidden_from_admin_and_finance(): void

@@ -98,6 +98,8 @@ class OrderController extends Controller
     // Process Return POST
     public function processReturn(Request $request, int $orderId, SaleReturnService $returnService)
     {
+        abort_unless(auth()->user()?->can('orders.returns') || auth()->user()?->can('pos.refund'), 403, 'Unauthorized! You do not have permission to process sale returns or refunds.');
+
         $request->validate([
             'reason' => 'required|string|max:255',
             'refund_method' => 'required|in:cash,credit,bank',
@@ -125,6 +127,8 @@ class OrderController extends Controller
     // Cancel Order (Draft or Completed) with shift closure and role checks
     public function cancelOrder(Request $request, int $id, OrderService $orderService)
     {
+        abort_unless(auth()->user()?->can('pos.cancel-order'), 403, 'Unauthorized! You do not have permission to cancel orders.');
+
         $request->validate([
             'reason' => 'required|string|max:255',
             'is_waste' => 'nullable|boolean',

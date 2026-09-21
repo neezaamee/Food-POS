@@ -36,7 +36,7 @@ class AppServiceProvider extends ServiceProvider
 
         // Dynamic Role-Based Access Control (RBAC) Gate
         Gate::before(function (User $user, string $ability) {
-            if ($user->isSuperAdmin() || $user->isOwner()) {
+            if ($user->isSuperAdmin()) {
                 return true;
             }
 

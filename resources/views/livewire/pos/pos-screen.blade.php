@@ -306,9 +306,11 @@
         </div>
         <div class="d-flex align-items-center gap-1">
           @if ($orderType === 'DINE_IN' && $selectedTableId && $currentOrderId)
+            @can('pos.table-transfer')
             <button type="button" wire:click="openTableTransfer" class="btn btn-sm btn-outline-warning py-0.5 px-2" title="Transfer Table">
               <i class="bi bi-arrow-left-right"></i>
             </button>
+            @endcan
           @endif
           <button type="button" wire:click="clearOrder" class="btn btn-sm btn-outline-danger py-0.5 px-2" title="Clear Order & All Form Fields">
             <i class="bi bi-arrow-clockwise me-1"></i> Clear
@@ -502,11 +504,15 @@
         <div class="d-flex justify-content-between align-items-center small mb-1" style="font-size: 0.78rem;">
           <div class="d-flex align-items-center gap-1">
             <span class="text-muted">Discount</span>
+            @can('pos.discount')
             <select wire:model.live="discountType" id="posDiscountType" class="form-select form-select-sm p-0 px-1" style="width: 48px; height: 22px; font-size: 0.7rem;">
               <option value="fixed">Rs.</option>
               <option value="percent">%</option>
             </select>
             <input type="number" wire:model.live.debounce.300ms="discountRate" id="posDiscountRate" class="form-control form-control-sm p-0 px-1 text-end" style="width: 55px; height: 22px; font-size: 0.75rem;" min="0">
+            @else
+            <span class="text-muted fst-italic" style="font-size: 0.7rem;">(No permission)</span>
+            @endcan
           </div>
           <span class="text-danger fw-semibold" id="posCartDiscount">- Rs. {{ number_format($discountAmount, 2) }}</span>
         </div>
@@ -670,9 +676,11 @@
                   <button type="button" wire:click="$set('paymentMethod', 'digital')" class="btn {{ $paymentMethod === 'digital' ? 'btn-primary' : 'btn-outline-secondary' }}">
                     <i class="ph-duotone ph-device-mobile me-1"></i> Wallet / QR
                   </button>
+                  @can('pos.credit-sale')
                   <button type="button" wire:click="$set('paymentMethod', 'credit')" class="btn {{ $paymentMethod === 'credit' ? 'btn-primary' : 'btn-outline-secondary' }}">
                     <i class="ph-duotone ph-handshake me-1"></i> Credit
                   </button>
+                  @endcan
                   <button type="button" wire:click="$set('paymentMethod', 'split')" class="btn {{ $paymentMethod === 'split' ? 'btn-primary' : 'btn-outline-secondary' }}">
                     <i class="ph-duotone ph-arrows-split me-1"></i> Split
                   </button>
@@ -839,7 +847,9 @@
                           <option value="easypaisa">EasyPaisa</option>
                           <option value="nayapay">NayaPay</option>
                           <option value="raast">Raast QR</option>
+                          @can('pos.credit-sale')
                           <option value="credit">Credit</option>
+                          @endcan
                         </select>
                         <input type="number" wire:model.defer="splitPayments.{{ $pIndex }}.amount" class="form-control form-control-sm text-end" placeholder="Amount" step="0.01">
                         <input type="text" wire:model.defer="splitPayments.{{ $pIndex }}.reference" class="form-control form-control-sm" placeholder="Ref/TID #">
@@ -1234,9 +1244,11 @@
                           <button type="button" wire:click="loadExistingOrder({{ $o->id }})" class="btn btn-sm btn-primary" title="Recall & Add More Items">
                             <i class="bi bi-folder2-open me-1"></i> Recall
                           </button>
+                          @can('pos.cancel-order')
                           <button type="button" wire:click="cancelOpenOrder({{ $o->id }})" wire:confirm="Are you sure you want to CANCEL Open Order #{{ $o->order_number }}?" class="btn btn-sm btn-outline-danger" title="Cancel this open order">
                             <i class="bi bi-x-circle me-1"></i> Cancel
                           </button>
+                          @endcan
                         </div>
                       </td>
                     </tr>

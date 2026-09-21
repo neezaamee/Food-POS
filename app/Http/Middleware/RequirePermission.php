@@ -25,7 +25,7 @@ class RequirePermission
             return redirect()->route('login');
         }
 
-        if ($user->isSuperAdmin() || $user->isOwner()) {
+        if ($user->isSuperAdmin()) {
             return $next($request);
         }
 

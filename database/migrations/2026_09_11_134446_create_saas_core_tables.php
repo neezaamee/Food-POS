@@ -108,7 +108,7 @@ return new class extends Migration
             'max_products' => 150,
             'max_monthly_orders' => 1000,
             'max_tables' => 15,
-            'features' => json_encode(['pos', 'tables', 'takeaway', 'delivery', 'receipts']),
+            'features' => json_encode(['pos', 'tables', 'takeaway', 'delivery', 'receipts', 'reports', 'pos.core', 'pos.takeaway', 'pos.dine_in', 'pos.delivery', 'pos.open_orders', 'reports.sales']),
             'created_at' => now(),
             'updated_at' => now(),
         ]);
@@ -125,7 +125,7 @@ return new class extends Migration
             'max_products' => 600,
             'max_monthly_orders' => 5000,
             'max_tables' => 50,
-            'features' => json_encode(['pos', 'tables', 'takeaway', 'delivery', 'receipts', 'kitchen', 'inventory', 'recipes', 'deals', 'whatsapp', 'shifts']),
+            'features' => json_encode(['pos', 'tables', 'takeaway', 'delivery', 'receipts', 'kitchen', 'inventory', 'recipes', 'deals', 'whatsapp', 'shifts', 'reports', 'pos.core', 'pos.takeaway', 'pos.dine_in', 'pos.delivery', 'pos.open_orders', 'kitchen.kds', 'kitchen.urdu', 'inventory.stock', 'inventory.recipes', 'inventory.purchases', 'inventory.management', 'finance.day_close', 'messaging.whatsapp', 'marketing.whatsapp', 'reports.sales', 'reports.advanced']),
             'created_at' => now(),
             'updated_at' => now(),
         ]);
@@ -142,7 +142,7 @@ return new class extends Migration
             'max_products' => 0,
             'max_monthly_orders' => 0,
             'max_tables' => 0,
-            'features' => json_encode(['pos', 'tables', 'takeaway', 'delivery', 'receipts', 'kitchen', 'inventory', 'recipes', 'deals', 'whatsapp', 'shifts', 'accounting', 'fbr']),
+            'features' => json_encode(['pos', 'tables', 'takeaway', 'delivery', 'receipts', 'kitchen', 'inventory', 'recipes', 'deals', 'whatsapp', 'shifts', 'accounting', 'fbr', 'reports', 'pos.core', 'pos.takeaway', 'pos.dine_in', 'pos.delivery', 'pos.open_orders', 'kitchen.kds', 'kitchen.urdu', 'inventory.stock', 'inventory.recipes', 'inventory.purchases', 'inventory.management', 'finance.day_close', 'finance.double_entry', 'accounting.ledger', 'compliance.fbr', 'messaging.whatsapp', 'marketing.whatsapp', 'reports.sales', 'reports.advanced', 'saas.multiple_users']),
             'created_at' => now(),
             'updated_at' => now(),
         ]);

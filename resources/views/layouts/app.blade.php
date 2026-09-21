@@ -173,10 +173,12 @@
     <!-- Header Right -->
     <div class="header-right">
       <!-- Quick POS Button -->
+      @can('pos.access')
       <a href="{{ route('pos.index') }}" class="btn btn-sm btn-primary d-none d-sm-inline-flex align-items-center gap-2 me-2">
         <i class="ph-duotone ph-storefront"></i>
         <span>Live POS</span>
       </a>
+      @endcan
 
       <!-- Desktop Actions -->
       <div class="header-actions-desktop">
@@ -193,9 +195,11 @@
         </button>
 
         <!-- Cash Drawer Quick Status -->
+        @can('cash.shifts')
         <a href="{{ route('cash.shifts') }}" class="header-action" title="Cash Shifts">
           <i class="ph-duotone ph-vault"></i>
         </a>
+        @endcan
 
         <!-- User Dropdown - shadcn style -->
         <div class="header-action dropdown user-dropdown">
@@ -216,11 +220,13 @@
                 <i class="bi bi-person"></i> Profile
               </a>
             </li>
+            @can('settings.access')
             <li>
               <a class="dropdown-item" href="{{ route('settings.index') }}">
                 <i class="bi bi-gear"></i> System Settings
               </a>
             </li>
+            @endcan
             <li><hr class="dropdown-divider"></li>
             <li>
               <form method="POST" action="{{ route('logout') }}">
@@ -253,10 +259,12 @@
   <!-- Mobile Header Menu -->
   <div class="mobile-header-menu">
     <div class="mobile-header-menu-content">
+      @can('pos.access')
       <a href="{{ route('pos.index') }}" class="mobile-menu-item">
         <i class="ph-duotone ph-storefront"></i>
         <span class="mobile-menu-label">Open POS</span>
       </a>
+      @endcan
       <button class="mobile-menu-item theme-toggle" title="Toggle Theme">
         <i class="bi bi-moon icon-dark"></i>
         <i class="bi bi-sun icon-light"></i>
@@ -344,7 +352,7 @@
           </a>
         </li>
         @endcan
-        @canany(['pos.refund', 'orders.returns', 'orders.view'])
+        @canany(['pos.refund', 'orders.returns'])
         <li class="nav-item">
           <a class="nav-link {{ request()->routeIs('orders.returns.*') ? 'active' : '' }}" href="{{ route('orders.returns.index') }}" data-tooltip="Sale Returns">
             <i class="ph-duotone ph-arrow-counter-clockwise"></i>
@@ -592,10 +600,18 @@
     <footer class="footer">
       <div class="footer-content">
         <div class="footer-links">
+          @can('pos.access')
           <a href="{{ route('pos.index') }}">POS</a>
+          @endcan
+          @can('orders.view')
           <a href="{{ route('orders.index') }}">Orders</a>
+          @endcan
+          @can('reports.view')
           <a href="{{ route('reports.sales') }}">Reports</a>
+          @endcan
+          @can('settings.access')
           <a href="{{ route('settings.index') }}">Settings</a>
+          @endcan
         </div>
         <div class="footer-copyright">
           &copy; {{ date('Y') }} <a href="#">Food Point POS</a>. EasyAdmin Pro Edition.

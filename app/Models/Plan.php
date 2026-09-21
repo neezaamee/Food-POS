@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Services\SaaS\FeatureAccessService;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -46,7 +47,22 @@ class Plan extends Model
     {
         $features = $this->features ?? [];
 
-        return in_array('*', $features, true) || in_array($feature, $features, true);
+        if (in_array('*', $features, true)) {
+            return true;
+        }
+
+        if (in_array($feature, $features, true)) {
+            return true;
+        }
+
+        $aliases = FeatureAccessService::resolveAliases($feature);
+        foreach ($aliases as $alias) {
+            if (in_array($alias, $features, true)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     public function getPriceAttribute(): float

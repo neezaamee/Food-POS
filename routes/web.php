@@ -63,10 +63,10 @@ Route::middleware('auth')->group(function () {
         Route::get('/{id}', [OrderController::class, 'show'])->name('show');
         Route::get('/{id}/thermal', [OrderController::class, 'thermal'])->name('thermal');
         Route::post('/{id}/whatsapp', [OrderController::class, 'sendWhatsApp'])->name('whatsapp');
-        Route::post('/{id}/return', [OrderController::class, 'processReturn'])->name('return.process');
-        Route::post('/{id}/cancel', [OrderController::class, 'cancelOrder'])->name('cancel');
+        Route::post('/{id}/return', [OrderController::class, 'processReturn'])->name('return.process')->middleware(['permission:orders.returns|pos.refund']);
+        Route::post('/{id}/cancel', [OrderController::class, 'cancelOrder'])->name('cancel')->middleware(['permission:pos.cancel-order']);
     });
-    Route::get('/returns', [OrderController::class, 'returnsIndex'])->name('orders.returns.index')->middleware(['permission:orders.returns|orders.view']);
+    Route::get('/returns', [OrderController::class, 'returnsIndex'])->name('orders.returns.index')->middleware(['permission:orders.returns|pos.refund']);
 
     // Restaurant Operations (Floor, Kitchen, Delivery)
     Route::prefix('restaurant')->name('restaurant.')->group(function () {
