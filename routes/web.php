@@ -73,7 +73,11 @@ Route::middleware('auth')->group(function () {
         Route::middleware(['permission:tables.manage'])->group(function () {
             Route::get('/tables', [RestaurantController::class, 'tables'])->name('tables');
             Route::post('/sections', [RestaurantController::class, 'storeSection'])->name('sections.store');
+            Route::put('/sections/{section}', [RestaurantController::class, 'updateSection'])->name('sections.update');
+            Route::delete('/sections/{section}', [RestaurantController::class, 'destroySection'])->name('sections.destroy');
             Route::post('/tables', [RestaurantController::class, 'storeTable'])->name('tables.store');
+            Route::put('/tables/{table}', [RestaurantController::class, 'updateTable'])->name('tables.update');
+            Route::delete('/tables/{table}', [RestaurantController::class, 'destroyTable'])->name('tables.destroy');
         });
 
         Route::middleware(['permission:kitchen.view'])->group(function () {

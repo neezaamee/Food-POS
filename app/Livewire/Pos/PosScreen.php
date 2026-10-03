@@ -228,7 +228,7 @@ class PosScreen extends Component
             });
         }
 
-        $products = $productsQuery->take(30)->get();
+        $products = $productsQuery->take(100)->get();
         $sections = TableSection::with(['tables'])->where('is_active', true)->get();
         $deliveryAreas = DeliveryArea::where('is_active', true)->get();
         $riders = DeliveryRider::where('is_active', true)->get();
@@ -1484,7 +1484,7 @@ class PosScreen extends Component
             $errMsg = $result['error'] ?? 'Failed to send WhatsApp message.';
             $this->whatsAppFallbackUrl = $result['fallback_url'] ?? null;
 
-            // Check if failure is due to WhatsApp not being connected
+            // Check if failure is due to WhatsApp not being paired yet
             $status = $whatsAppService->getStatus();
             if ($status['running'] && ! $status['connected']) {
                 $this->whatsAppQrCode = $status['qr'];
@@ -1495,7 +1495,12 @@ class PosScreen extends Component
                 return;
             }
 
-            $this->notify($errMsg, 'danger');
+            if ($this->whatsAppFallbackUrl) {
+                $this->dispatch('open-whatsapp-web', url: $this->whatsAppFallbackUrl);
+                $this->notify('WhatsApp Bridge is offline. Opening direct WhatsApp Web / App dispatch...', 'info');
+            } else {
+                $this->notify($errMsg, 'danger');
+            }
         }
     }
 

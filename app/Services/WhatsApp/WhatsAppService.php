@@ -16,7 +16,24 @@ class WhatsAppService
 
     public function __construct()
     {
-        $this->bridgeUrl = rtrim(config('services.whatsapp.url', 'http://127.0.0.1:3333'), '/');
+        $this->refreshBridgeUrl();
+    }
+
+    public function refreshBridgeUrl(): string
+    {
+        $configured = SystemSetting::get('whatsapp_bridge_url');
+        if (! empty($configured)) {
+            $this->bridgeUrl = rtrim($configured, '/');
+        } else {
+            $this->bridgeUrl = rtrim(config('services.whatsapp.url', env('WHATSAPP_BRIDGE_URL', 'http://127.0.0.1:3333')), '/');
+        }
+
+        return $this->bridgeUrl;
+    }
+
+    public function getBridgeUrl(): string
+    {
+        return $this->refreshBridgeUrl();
     }
 
     /**
@@ -25,7 +42,7 @@ class WhatsAppService
     public function isServiceRunning(): bool
     {
         try {
-            $response = Http::timeout(2)->get("{$this->bridgeUrl}/api/ping");
+            $response = Http::timeout(2)->get("{$this->getBridgeUrl()}/api/ping");
 
             return $response->successful() && ($response->json('ok') === true);
         } catch (Exception $e) {
@@ -53,7 +70,7 @@ class WhatsAppService
         }
 
         try {
-            $response = Http::timeout(4)->get("{$this->bridgeUrl}/api/status");
+            $response = Http::timeout(4)->get("{$this->getBridgeUrl()}/api/status");
             if ($response->successful()) {
                 $data = $response->json();
 
@@ -94,7 +111,7 @@ class WhatsAppService
         }
 
         try {
-            $response = Http::timeout(6)->post("{$this->bridgeUrl}/api/connect");
+            $response = Http::timeout(6)->post("{$this->getBridgeUrl()}/api/connect");
 
             return $response->json() ?? ['ok' => true];
         } catch (Exception $e) {
@@ -112,7 +129,7 @@ class WhatsAppService
         }
 
         try {
-            $response = Http::timeout(6)->post("{$this->bridgeUrl}/api/logout");
+            $response = Http::timeout(6)->post("{$this->getBridgeUrl()}/api/logout");
 
             return $response->json() ?? ['ok' => true];
         } catch (Exception $e) {
@@ -298,7 +315,7 @@ class WhatsAppService
         }
 
         try {
-            $response = Http::timeout(15)->post("{$this->bridgeUrl}/api/send", [
+            $response = Http::timeout(15)->post("{$this->getBridgeUrl()}/api/send", [
                 'phone' => $normalizedPhone,
                 'message' => $message,
             ]);

@@ -144,65 +144,41 @@
         overflow: visible !important;
       }
 
-      /* Hide everything except the receipt modal and receipt content */
-      .pos-navbar,
-      .pos-container,
-      .pos-wrapper > *:not(.modal),
-      .modal-backdrop,
-      .modal-header,
-      .modal-footer,
-      .no-print {
-        display: none !important;
+      /* Exact 80mm thermal receipt printing */
+      body * {
+        visibility: hidden !important;
       }
 
-      /* Flatten the modal container so it flows naturally on 80mm paper */
-      .modal {
-        position: static !important;
-        display: block !important;
-        width: 80mm !important;
-        max-width: 80mm !important;
-        height: auto !important;
-        min-height: auto !important;
-        overflow: visible !important;
-        background: transparent !important;
-        padding: 0 !important;
-        margin: 0 !important;
-      }
-
-      .modal-dialog {
-        position: static !important;
-        display: block !important;
-        width: 80mm !important;
-        max-width: 80mm !important;
-        margin: 0 !important;
-        padding: 0 !important;
-        transform: none !important;
-      }
-
-      .modal-content {
-        position: static !important;
-        border: none !important;
-        box-shadow: none !important;
-        background: #fff !important;
-        padding: 0 !important;
-        margin: 0 !important;
-        width: 80mm !important;
-        max-width: 80mm !important;
+      #printableReceipt,
+      #printableReceipt * {
+        visibility: visible !important;
       }
 
       #printableReceipt {
-        display: block !important;
-        position: static !important;
+        position: absolute !important;
+        left: 0 !important;
+        top: 0 !important;
         width: 80mm !important;
         max-width: 80mm !important;
-        padding: 4mm 4mm !important;
         margin: 0 !important;
+        padding: 3mm 3mm !important;
         background: #fff !important;
+        color: #000 !important;
+        display: block !important;
+        overflow: visible !important;
         font-family: 'Courier New', Courier, monospace, 'Noto Nastaliq Urdu', 'Jameel Noori Nastaleeq' !important;
         font-size: 14px !important;
         font-weight: 600 !important;
         line-height: 1.35 !important;
-        color: #000 !important;
+      }
+
+      .no-print,
+      .pos-navbar,
+      .pos-container,
+      .modal-backdrop,
+      .modal-header,
+      .modal-footer {
+        display: none !important;
       }
 
       #printableReceipt img {
@@ -274,6 +250,20 @@
         }
       }
     }
+
+    // Global Thermal Print Dispatcher
+    window.printReceipt = function(url) {
+      if (url) {
+        var printWin = window.open(url, '_blank', 'width=420,height=700,menubar=no,toolbar=no,location=no,status=no');
+        if (printWin) {
+          window.activePrintPopup = printWin;
+          printWin.focus();
+          return;
+        }
+      }
+      window.print();
+    };
+    window.printReceiptModal = window.printReceipt;
 
     // Global Esc key listener on master POS layout
     window.addEventListener('keydown', function (e) {

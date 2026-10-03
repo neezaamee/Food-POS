@@ -214,69 +214,88 @@
           @endforeach
         </div>
       @else
-        <!-- Products Grid Scroll Area -->
+        <!-- Products Grid Scroll Area (Categorized Sections) -->
         <div class="overflow-y-auto flex-grow-1 pe-1">
-          <div class="row g-3">
-            @forelse ($products as $prod)
-              <div class="col-6 col-sm-4 col-md-3 col-xl-3">
-                <div class="card h-100 product-card p-2 text-start position-relative d-flex flex-column justify-content-between border"
-                  wire:click="addToCart({{ $prod->id }})"
-                  style="cursor: pointer; transition: transform 0.15s ease, box-shadow 0.15s ease;"
-                  onmouseover="this.style.transform='translateY(-2px)'"
-                  onmouseout="this.style.transform='translateY(0)'">
-                  <div>
-                    <!-- Product Photo / Image if uploaded -->
-                    @if ($prod->image_url)
-                      <div class="rounded overflow-hidden mb-1.5 bg-light border" style="height: 58px;">
-                        <img src="{{ $prod->image_url }}" alt="{{ $prod->name }}" style="width: 100%; height: 100%; object-fit: cover;">
-                      </div>
-                    @endif
-                    <!-- Product Badge & Prep Time -->
-                    <div class="d-flex justify-content-between align-items-center mb-1">
-                      <span class="badge badge-soft-primary" style="font-size: 0.65rem;">
-                        {{ $prod->category?->name ?? 'Item' }}
-                      </span>
-                      @if ($prod->has_variants && $prod->variants->isNotEmpty())
-                        <span class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle" style="font-size: 0.65rem;">
-                          <i class="bi bi-layers-fill me-1"></i>{{ $prod->variants->count() }} Sizes
-                        </span>
-                      @else
-                        <small class="text-muted" style="font-size: 0.7rem;">
-                          <i class="bi bi-stopwatch"></i> {{ $prod->prep_time_minutes }}m
-                        </small>
-                      @endif
-                    </div>
-                    <!-- Product Name -->
-                    <div class="fw-semibold text-heading small text-truncate-2 mb-1" style="min-height: 2.2em; line-height: 1.18;">
-                      {{ $prod->name }}
-                    </div>
-                  </div>
-                  <!-- Price & Add -->
-                  <div class="d-flex justify-content-between align-items-center mt-1 pt-1 border-top">
-                    @if ($prod->has_variants && $prod->variants->isNotEmpty())
-                      <div>
-                        <div class="text-muted" style="font-size: 0.65rem; line-height: 1;">Starts from</div>
-                        <span class="fw-bold fs-6 text-primary">Rs. {{ number_format($prod->variants->min('sale_price')) }}</span>
-                      </div>
-                      <button type="button" class="btn btn-sm btn-outline-primary rounded-pill px-2 py-0" style="font-size: 0.75rem; height: 24px;">
-                        Choose <i class="bi bi-chevron-right ms-1"></i>
-                      </button>
-                    @else
-                      <span class="fw-bold fs-6 text-primary">Rs. {{ number_format($prod->sale_price) }}</span>
-                      <button type="button" class="btn btn-sm btn-primary rounded-circle p-0" style="width: 26px; height: 26px;">
-                        <i class="bi bi-plus"></i>
-                      </button>
-                    @endif
-                  </div>
+          @php
+            $groupedProducts = $products->groupBy(function($item) {
+              return $item->category?->name ?? 'General Menu';
+            });
+          @endphp
+
+          @forelse ($groupedProducts as $categoryName => $catItems)
+            <div class="mb-4">
+              <!-- Category Heading -->
+              <div class="d-flex align-items-center justify-content-between mb-2 pb-1 border-bottom">
+                <div class="d-flex align-items-center gap-2">
+                  <span class="badge bg-primary px-2.5 py-1 fw-bold fs-6">
+                    <i class="ph-duotone ph-tag me-1"></i> {{ $categoryName }}
+                  </span>
+                  <span class="text-muted small">({{ $catItems->count() }} {{ \Illuminate\Support\Str::plural('item', $catItems->count()) }})</span>
                 </div>
               </div>
-            @empty
-              <div class="col-12 text-center py-5 text-muted">
-                <i class="bi bi-search fs-1 mb-2"></i>
-                <p>No products found matching "{{ $search }}"</p>
+              <div class="row g-3">
+                @foreach ($catItems as $prod)
+                  <div class="col-6 col-sm-4 col-md-3 col-xl-3">
+                    <div class="card h-100 product-card p-2 text-start position-relative d-flex flex-column justify-content-between border"
+                      wire:click="addToCart({{ $prod->id }})"
+                      style="cursor: pointer; transition: transform 0.15s ease, box-shadow 0.15s ease;"
+                      onmouseover="this.style.transform='translateY(-2px)'"
+                      onmouseout="this.style.transform='translateY(0)'">
+                      <div>
+                        <!-- Product Photo / Image if uploaded -->
+                        @if ($prod->image_url)
+                          <div class="rounded overflow-hidden mb-1.5 bg-light border" style="height: 58px;">
+                            <img src="{{ $prod->image_url }}" alt="{{ $prod->name }}" style="width: 100%; height: 100%; object-fit: cover;">
+                          </div>
+                        @endif
+                        <!-- Product Badge & Prep Time -->
+                        <div class="d-flex justify-content-between align-items-center mb-1">
+                          <span class="badge badge-soft-primary" style="font-size: 0.65rem;">
+                            {{ $prod->category?->name ?? 'Item' }}
+                          </span>
+                          @if ($prod->has_variants && $prod->variants->isNotEmpty())
+                            <span class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle" style="font-size: 0.65rem;">
+                              <i class="bi bi-layers-fill me-1"></i>{{ $prod->variants->count() }} Sizes
+                            </span>
+                          @else
+                            <small class="text-muted" style="font-size: 0.7rem;">
+                              <i class="bi bi-stopwatch"></i> {{ $prod->prep_time_minutes }}m
+                            </small>
+                          @endif
+                        </div>
+                        <!-- Product Name -->
+                        <div class="fw-semibold text-heading small text-truncate-2 mb-1" style="min-height: 2.2em; line-height: 1.18;">
+                          {{ $prod->name }}
+                        </div>
+                      </div>
+                      <!-- Price & Add -->
+                      <div class="d-flex justify-content-between align-items-center mt-1 pt-1 border-top">
+                        @if ($prod->has_variants && $prod->variants->isNotEmpty())
+                          <div>
+                            <div class="text-muted" style="font-size: 0.65rem; line-height: 1;">Starts from</div>
+                            <span class="fw-bold fs-6 text-primary">Rs. {{ number_format($prod->variants->min('sale_price')) }}</span>
+                          </div>
+                          <button type="button" class="btn btn-sm btn-outline-primary rounded-pill px-2 py-0" style="font-size: 0.75rem; height: 24px;">
+                            Choose <i class="bi bi-chevron-right ms-1"></i>
+                          </button>
+                        @else
+                          <span class="fw-bold fs-6 text-primary">Rs. {{ number_format($prod->sale_price) }}</span>
+                          <button type="button" class="btn btn-sm btn-primary rounded-circle p-0" style="width: 26px; height: 26px;">
+                            <i class="bi bi-plus"></i>
+                          </button>
+                        @endif
+                      </div>
+                    </div>
+                  </div>
+                @endforeach
               </div>
-            @endforelse
-          </div>
+            </div>
+          @empty
+            <div class="col-12 text-center py-5 text-muted">
+              <i class="bi bi-search fs-1 mb-2"></i>
+              <p>No products found matching "{{ $search }}"</p>
+            </div>
+          @endforelse
         </div>
       @endif
     </div>
@@ -1108,21 +1127,24 @@
           </div>
           <div class="modal-footer no-print d-flex flex-column gap-2 p-2">
             <!-- WhatsApp Receipt Dispatch Section -->
+            @php
+              $waService = app(\App\Services\WhatsApp\WhatsAppService::class);
+              $targetWaNum = $whatsAppRecipientPhone ?: ($completedOrder->customer_phone ?: '');
+              $directWaLink = !empty($targetWaNum) ? $waService->getWhatsAppWebUrl($targetWaNum, $waService->formatReceiptText($completedOrder)) : null;
+            @endphp
             <div class="w-100 p-2 bg-light rounded border">
               <div class="d-flex align-items-center justify-content-between mb-1">
                 <span class="small fw-bold text-success d-flex align-items-center gap-1">
                   <i class="bi bi-whatsapp"></i> Customer WhatsApp Receipt
                 </span>
-                @if ($whatsAppFallbackUrl)
-                  <a href="{{ $whatsAppFallbackUrl }}" target="_blank" class="small text-decoration-none text-success fw-semibold">
-                    <i class="bi bi-box-arrow-up-right me-1"></i> Open via Web
-                  </a>
-                @endif
+                <span class="badge {{ $whatsAppConnected ? 'bg-success' : 'bg-secondary' }}" style="font-size: 0.68rem;">
+                  {{ $whatsAppConnected ? 'Bridge Connected' : 'Ready / Direct Mode' }}
+                </span>
               </div>
-              <div class="input-group input-group-sm">
+              <div class="input-group input-group-sm mb-1.5">
                 <span class="input-group-text bg-white text-muted"><i class="bi bi-telephone"></i></span>
-                <input type="text" class="form-control" placeholder="Customer WhatsApp (e.g. 03001234567)" wire:model.defer="whatsAppRecipientPhone">
-                <button type="button" class="btn btn-success d-flex align-items-center gap-1" wire:click="sendWhatsAppReceipt" wire:loading.attr="disabled" wire:target="sendWhatsAppReceipt">
+                <input type="text" class="form-control" placeholder="Customer WhatsApp (e.g. 03001234567)" wire:model.live.debounce.300ms="whatsAppRecipientPhone">
+                <button type="button" class="btn btn-success d-flex align-items-center gap-1" wire:click="sendWhatsAppReceipt" wire:loading.attr="disabled" wire:target="sendWhatsAppReceipt" title="Auto-send via WhatsApp bridge">
                   <span wire:loading.remove wire:target="sendWhatsAppReceipt">
                     <i class="bi bi-send-fill me-1"></i> Send
                   </span>
@@ -1131,6 +1153,11 @@
                   </span>
                 </button>
               </div>
+              @if ($directWaLink)
+                <a href="{{ $directWaLink }}" target="_blank" class="btn btn-outline-success btn-sm w-100 py-1 d-flex align-items-center justify-content-center gap-1.5 fw-semibold" style="font-size: 0.78rem;" title="Open WhatsApp directly with receipt message">
+                  <i class="bi bi-box-arrow-up-right"></i> Open & Send via WhatsApp Web / App
+                </a>
+              @endif
             </div>
 
             <!-- Modal Action Buttons -->
@@ -1140,7 +1167,7 @@
                 <button type="button" class="btn btn-outline-success btn-sm" wire:click="openWhatsAppConnectModal" title="Check WhatsApp Connection / QR">
                   <i class="bi bi-qr-code-scan me-1"></i> WhatsApp Status
                 </button>
-                <button type="button" class="btn btn-primary btn-sm" onclick="window.print()">
+                <button type="button" class="btn btn-primary btn-sm" onclick="window.printReceipt('{{ route('orders.thermal', $completedOrder->id) }}')">
                   <i class="bi bi-printer me-1"></i> Print Receipt
                 </button>
               </div>
@@ -1596,9 +1623,25 @@
           }
         });
       });
-    }
-
     // 2. Thermal Printing listeners
+    window.printReceiptModal = function(url) {
+      if (url) {
+        activePrintPopup = window.open(url, '_blank', 'width=420,height=650,location=no,toolbar=no');
+        if (activePrintPopup) {
+          activePrintPopup.focus();
+          return;
+        }
+      }
+      window.print();
+    };
+
+    Livewire.on('open-whatsapp-web', (event) => {
+      const url = event.url || (event[0] && event[0].url);
+      if (url) {
+        window.open(url, '_blank');
+      }
+    });
+
     Livewire.on('print-bill', (event) => {
       const url = event.url || (event[0] && event[0].url);
       if (url) {

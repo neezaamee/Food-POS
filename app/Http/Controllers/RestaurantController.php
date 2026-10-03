@@ -30,6 +30,36 @@ class RestaurantController extends Controller
         return back()->with('success', 'Table Section created successfully!');
     }
 
+    public function updateSection(Request $request, TableSection $section)
+    {
+        $validated = $request->validate([
+            'name' => 'required|string|max:100',
+            'description' => 'nullable|string|max:255',
+        ]);
+
+        $section->update($validated);
+
+        return back()->with('success', "Section {$section->name} updated successfully!");
+    }
+
+    public function destroySection(TableSection $section)
+    {
+        if ($section->tables()->where(function ($q) {
+            $q->where('status', 'occupied')->orWhereNotNull('active_order_id');
+        })->exists()) {
+            return back()->with('error', "Cannot delete Section {$section->name} because it contains tables with active dining orders.");
+        }
+
+        if ($section->tables()->count() > 0) {
+            return back()->with('error', "Cannot delete Section {$section->name} because it has {$section->tables()->count()} table(s). Please move or delete its tables first.");
+        }
+
+        $sectionName = $section->name;
+        $section->delete();
+
+        return back()->with('success', "Section {$sectionName} deleted successfully!");
+    }
+
     public function storeTable(Request $request)
     {
         if (! app(SubscriptionService::class)->canCreateTable()) {
@@ -48,6 +78,35 @@ class RestaurantController extends Controller
         RestaurantTable::create(array_merge($request->only('table_number', 'name', 'section_id', 'capacity'), ['status' => 'available']));
 
         return back()->with('success', 'Restaurant Table added successfully!');
+    }
+
+    public function updateTable(Request $request, RestaurantTable $table)
+    {
+        $tenantId = TenantContext::id() ?? 1;
+
+        $validated = $request->validate([
+            'table_number' => "required|string|max:50|unique:tables,table_number,{$table->id},id,tenant_id,{$tenantId}",
+            'name' => 'required|string|max:100',
+            'section_id' => 'required|exists:table_sections,id',
+            'capacity' => 'required|integer|min:1',
+            'status' => 'required|in:available,occupied,reserved,cleaning',
+        ]);
+
+        $table->update($validated);
+
+        return back()->with('success', "Table {$table->name} updated successfully!");
+    }
+
+    public function destroyTable(RestaurantTable $table)
+    {
+        if ($table->isOccupied() || $table->active_order_id) {
+            return back()->with('error', "Cannot delete Table {$table->name} because it currently has an active order. Please complete or transfer the order first.");
+        }
+
+        $tableName = $table->name;
+        $table->delete();
+
+        return back()->with('success', "Table {$tableName} deleted successfully!");
     }
 
     // Kitchen Order Ticket (KOT) & Kitchen Display Screen (KDS)

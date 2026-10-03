@@ -18,6 +18,7 @@ class WhatsAppController extends Controller
     {
         $status = $whatsAppService->getStatus();
         $settings = [
+            'bridge_url' => SystemSetting::get('whatsapp_bridge_url', config('services.whatsapp.url', env('WHATSAPP_BRIDGE_URL', 'http://127.0.0.1:3333'))),
             'country_code' => SystemSetting::get('whatsapp_default_country_code', '92'),
             'auto_send' => (bool) SystemSetting::get('whatsapp_auto_send', '0'),
             'footer' => SystemSetting::get('whatsapp_receipt_footer', SystemSetting::get('invoice_footer_note', 'Thank you for dining with us! Please visit again.')),
@@ -86,12 +87,18 @@ class WhatsAppController extends Controller
     public function updateSettings(Request $request): RedirectResponse
     {
         $validated = $request->validate([
+            'whatsapp_bridge_url' => 'nullable|url|max:255',
             'whatsapp_default_country_code' => 'required|string|max:10',
             'whatsapp_auto_send' => 'nullable|boolean',
             'whatsapp_receipt_footer' => 'nullable|string|max:500',
         ]);
 
         try {
+            if ($request->filled('whatsapp_bridge_url')) {
+                SystemSetting::set('whatsapp_bridge_url', rtrim($validated['whatsapp_bridge_url'], '/'), 'whatsapp');
+            } else {
+                SystemSetting::set('whatsapp_bridge_url', '', 'whatsapp');
+            }
             SystemSetting::set('whatsapp_default_country_code', ltrim($validated['whatsapp_default_country_code'], '+'), 'whatsapp');
             SystemSetting::set('whatsapp_auto_send', $request->has('whatsapp_auto_send') ? '1' : '0', 'whatsapp');
             SystemSetting::set('whatsapp_receipt_footer', $validated['whatsapp_receipt_footer'] ?? '', 'whatsapp');

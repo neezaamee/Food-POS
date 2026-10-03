@@ -178,6 +178,15 @@
                             @csrf
 
                             <div class="row g-3 mb-3">
+                                <div class="col-12">
+                                    <label class="form-label small fw-medium">WhatsApp Bridge Service URL (Local / Online)</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text bg-light text-muted small"><i class="bi bi-link-45deg"></i></span>
+                                        <input type="url" name="whatsapp_bridge_url" class="form-control" value="{{ $settings['bridge_url'] }}" placeholder="http://127.0.0.1:3333">
+                                    </div>
+                                    <div class="form-text small text-muted">Use <code>http://127.0.0.1:3333</code> for local POS or specify your live server bridge URL (e.g. <code>https://wa.yourdomain.com</code>).</div>
+                                </div>
+
                                 <div class="col-md-6">
                                     <label class="form-label small fw-medium">Default Country Code</label>
                                     <div class="input-group">
