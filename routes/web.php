@@ -141,6 +141,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/overview', [InventoryController::class, 'overview'])->name('overview');
         Route::get('/ledger', [InventoryController::class, 'ledger'])->name('ledger');
         Route::get('/adjustments', [InventoryController::class, 'adjustments'])->name('adjustments');
+        Route::post('/adjustments', [InventoryController::class, 'storeAdjustment'])->name('adjustments.store');
         Route::get('/purchases', [InventoryController::class, 'purchases'])->name('purchases');
         Route::post('/purchases', [InventoryController::class, 'storePurchase'])->name('purchases.store');
         Route::get('/purchases/{id}', [InventoryController::class, 'showPurchase'])->name('purchases.show');
