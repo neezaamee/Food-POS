@@ -116,6 +116,67 @@
       }
     }
 
+    /* Mobile Screens & Handheld POS (<= 767.98px) */
+    @media (max-width: 767.98px) {
+      .pos-navbar {
+        min-height: 48px !important;
+        height: 48px !important;
+        padding: 0 0.4rem !important;
+        gap: 0.25rem !important;
+      }
+      .pos-container {
+        height: calc(100vh - 48px) !important;
+        height: calc(100dvh - 48px) !important;
+        flex-direction: column !important;
+        position: relative !important;
+        overflow: hidden !important;
+      }
+      .pos-catalog-panel,
+      .pos-cart-panel {
+        width: 100% !important;
+        max-width: 100% !important;
+        flex: 1 1 100% !important;
+        height: 100% !important;
+        border-end: none !important;
+      }
+      .pos-mobile-cart-bar {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        z-index: 1030;
+        padding: 0.6rem 0.75rem;
+        padding-bottom: calc(0.6rem + env(safe-area-inset-bottom, 0px));
+        background: var(--surface-color, #ffffff);
+        border-top: 1px solid var(--border-color, #e4e4e7);
+        box-shadow: 0 -4px 16px rgba(0, 0, 0, 0.12);
+      }
+      .pos-products-scroll-mobile {
+        padding-bottom: 75px !important;
+      }
+      .pos-cart-stepper {
+        width: 92px !important;
+        height: 32px !important;
+      }
+      .pos-cart-stepper button {
+        width: 30px !important;
+        font-size: 0.95rem !important;
+        font-weight: bold !important;
+      }
+      .pos-cart-stepper input {
+        font-size: 0.9rem !important;
+      }
+      .pos-action-btn {
+        padding-top: 0.55rem !important;
+        padding-bottom: 0.55rem !important;
+        font-size: 0.85rem !important;
+      }
+      .pos-customer-strip input,
+      .pos-customer-strip select {
+        font-size: 0.9rem !important;
+      }
+    }
+
     /* Print styling: exact 80mm thermal receipt printing matching KOT format */
     @page {
       margin: 0;

@@ -38,8 +38,8 @@
     }
     img.receipt-logo {
       display: block;
-      margin: 0 auto 6px auto;
-      max-height: 52px;
+      margin: auto;
+      max-height: 150px;
       max-width: 150px;
       object-fit: contain;
       image-rendering: -webkit-optimize-contrast;
@@ -140,16 +140,16 @@
   @endphp
 
   <div class="text-center">
-    <img src="{{ \App\Models\SystemSetting::logoUrl() }}" class="receipt-logo" alt="{{ $restName }}"><br>
+    <img src="{{ \App\Models\SystemSetting::logoUrl() }}" class="receipt-logo" alt="{{ $restName }}">
     <h2 style="margin: 0; font-size: 19px; font-weight: 900; letter-spacing: 0.5px; text-transform: uppercase;">{{ $restName }}</h2>
     @if ($tagline)
       <div style="font-size: 12px; font-weight: bold;">{{ $tagline }}</div>
     @endif
     @if ($address)
-      <div style="font-size: 12px;">{{ $address }}</div>
+      <div style="font-size: 13px;">{{ $address }}</div>
     @endif
     @if ($phone)
-      <div style="font-size: 12px; font-weight: bold;">Tel: {{ $phone }}</div>
+      <div style="font-size: 13px; font-weight: bold;">Tel: {{ $phone }}</div>
     @endif
     @if ($ntn || $strn)
       <div style="font-size: 11px;">
@@ -164,7 +164,7 @@
       <div class="badge-receipt">
         *** {{ $order->order_type }} - UNPAID BILL ***
       </div>
-      <div style="font-size: 13px; font-weight: 900;">(PAYMENT PENDING)</div>
+      {{--<div style="font-size: 13px; font-weight: 900;">(PAYMENT PENDING)</div>--}}
     @else
       <div class="badge-receipt">
         *** {{ $order->order_type }} RECEIPT ***
@@ -175,8 +175,8 @@
   <div class="border-top border-bottom py-1 my-2">
     <table>
       <tr>
-        <td style="font-size: 14px;">Order #:</td>
-        <td class="text-end fw-bold" style="font-size: 17px;">{{ $order->order_number }}</td>
+        <td style="font-size: 13px;">Order #:</td>
+        <td class="text-end fw-bold" style="font-size: 14px;">{{ $order->order_number }}</td>
       </tr>
       <tr>
         <td style="font-size: 13px;">Date:</td>
@@ -184,8 +184,8 @@
       </tr>
       @if ($order->table_name)
       <tr>
-        <td class="fw-bold" style="font-size: 15px;">Table:</td>
-        <td class="text-end fw-bold" style="font-size: 18px;">{{ $order->table_name }}</td>
+        <td class="fw-bold" style="font-size: 13px;">Table:</td>
+        <td class="text-end fw-bold" style="font-size: 14px;">{{ $order->table_name }}</td>
       </tr>
       @endif
       @if ($order->customer_name)
@@ -331,12 +331,15 @@
   </table>
 
   <div class="border-top my-2 text-center py-1">
+    {{--
     @if (! $order->isFinalized() || $order->payment_status !== 'paid')
       <div class="fw-bold" style="font-size: 14px; letter-spacing: 0.5px;">*** PLEASE PAY AT COUNTER / RIDER ***</div>
     @else
       <div class="fw-bold" style="font-size: 14px;">*** THANK YOU! ***</div>
     @endif
+    --}}
     <div style="font-size: 12px; margin-top: 4px;">{{ $footerNote }}</div>
+    <div style="font-size: 12px; margin-top: 4px">{{"Software by "}} <br>{{"ElafTech.Com - +923022211000"}} </div>
   </div>
   </div> <!-- .receipt-paper -->
 

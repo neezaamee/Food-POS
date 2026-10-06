@@ -1,4 +1,4 @@
-<div>
+<div x-data="{ mobileTab: 'menu' }">
   <!-- Top POS Navigation Bar -->
   <header class="pos-navbar">
     <div class="d-flex align-items-center gap-1 gap-sm-2 flex-shrink-0">
@@ -36,76 +36,149 @@
       </div>
     </div>
 
-    <!-- Center/Right Status -->
+    <!-- Center/Right Status (Responsive) -->
     <div class="d-flex align-items-center gap-1 gap-md-2 ms-auto flex-shrink-0">
-      @if ($activeShift)
-        <span class="badge badge-soft-success d-none d-sm-inline-flex align-items-center gap-1 py-1 px-2 text-nowrap" style="font-size: 0.75rem;" title="Shift #{{ $activeShift->id }} Open">
-          <i class="ph-duotone ph-vault"></i> Shift #{{ $activeShift->id }}
-        </span>
-      @else
-        <button type="button" wire:click="$set('showOpenShiftModal', true)" class="btn btn-warning btn-sm py-1 px-2 d-inline-flex align-items-center gap-1 fw-bold shadow-sm text-nowrap" style="font-size: 0.75rem;" title="Open Shift to Punch Orders">
-          <i class="ph-duotone ph-warning"></i>
-          <span>Open Shift<span class="d-none d-xl-inline"> to Punch</span></span>
-        </button>
-      @endif
-
-      <!-- Network Status Pill (Online / Offline / Syncing) -->
-      <span id="posNetworkStatusPill" class="badge bg-success-subtle text-success border border-success-subtle d-inline-flex align-items-center gap-1 px-2 py-1 text-nowrap" style="font-size: 0.75rem;" title="POS Network Status">
-        <span class="p-1 rounded-circle bg-success"></span>
-        <span class="d-none d-md-inline">Online</span>
-      </span>
-
-      <!-- WhatsApp Quick Status & Connect -->
-      <button type="button" wire:click="openWhatsAppConnectModal" class="btn btn-outline-success btn-sm py-1 px-2 d-inline-flex align-items-center gap-1 text-nowrap" style="font-size: 0.75rem;" title="WhatsApp Receipt Status & Pair Device">
-        <i class="bi bi-whatsapp"></i>
-        <span class="d-none d-xl-inline">WhatsApp</span>
-      </button>
-
-      <!-- Offline Sync Badge & Trigger -->
-      <button type="button" id="posOfflineSyncBtn" onclick="PosOfflineEngine.syncNow()" class="btn btn-warning btn-sm py-1 px-2 d-none align-items-center gap-1 shadow-sm fw-bold text-nowrap" style="font-size: 0.75rem;" title="Click to sync offline orders to cloud">
-        <i class="bi bi-cloud-arrow-up-fill"></i>
-        <span class="d-none d-xl-inline">Offline Queue</span>
-        <span id="posOfflineQueueBadge" class="badge bg-dark rounded-pill ms-1">0</span>
-      </button>
-
-      <!-- Open Orders Drawer Trigger -->
       @php
         $openCount = \App\Models\Order::whereNull('finalized_at')->where('order_status', '!=', 'cancelled')->where('order_type', $orderType)->count();
       @endphp
-      <button type="button" wire:click="$toggle('showOpenOrdersModal')" class="btn btn-outline-secondary btn-sm position-relative px-2 text-nowrap" title="Open {{ ucfirst(strtolower($orderType)) }} Orders">
-        <i class="bi bi-clock-history"></i>
-        <span class="d-none d-md-inline ms-1">
-          <span class="d-none d-xxl-inline">{{ ucfirst(strtolower($orderType)) }} </span>Orders
-        </span>
-        @if ($openCount > 0)
-          <span class="badge bg-primary ms-1 px-1.5">{{ $openCount }}</span>
+
+      <!-- MOBILE ONLY CONTROLS (<= 767px) -->
+      <div class="d-flex d-md-none align-items-center gap-1">
+        <!-- Mobile Menu / Cart Switcher Pills -->
+        <div class="btn-group btn-group-sm" role="group">
+          <button type="button" @click="mobileTab = 'menu'" :class="mobileTab === 'menu' ? 'btn-primary' : 'btn-outline-secondary'" class="btn py-1 px-2" title="Menu">
+            <i class="ph-duotone ph-squares-four"></i>
+          </button>
+          <button type="button" @click="mobileTab = 'cart'" :class="mobileTab === 'cart' ? 'btn-primary' : 'btn-outline-secondary'" class="btn py-1 px-2 position-relative" title="Cart">
+            <i class="ph-duotone ph-shopping-cart"></i>
+            @if (count($cart) > 0)
+              <span class="badge bg-danger rounded-pill position-absolute top-0 start-100 translate-middle" style="font-size: 0.55rem;">{{ count($cart) }}</span>
+            @endif
+          </button>
+        </div>
+
+        <!-- Open Orders Button (Mobile) -->
+        <button type="button" wire:click="$toggle('showOpenOrdersModal')" class="btn btn-outline-secondary btn-sm position-relative px-2" title="Open Orders">
+          <i class="bi bi-clock-history"></i>
+          @if ($openCount > 0)
+            <span class="badge bg-primary rounded-pill position-absolute top-0 start-100 translate-middle" style="font-size: 0.55rem;">{{ $openCount }}</span>
+          @endif
+        </button>
+
+        <!-- More Options Dropdown (Mobile) -->
+        <div class="dropdown">
+          <button class="btn btn-outline-secondary btn-sm px-2" type="button" data-bs-toggle="dropdown" aria-expanded="false" title="More Options">
+            <i class="bi bi-three-dots-vertical"></i>
+          </button>
+          <ul class="dropdown-menu dropdown-menu-end shadow-sm small py-1" style="min-width: 200px;">
+            @if ($activeShift)
+              <li class="dropdown-item-text text-success fw-semibold py-1.5">
+                <i class="ph-duotone ph-vault me-1"></i> Shift #{{ $activeShift->id }} Open
+              </li>
+            @else
+              <li>
+                <a class="dropdown-item text-warning fw-semibold py-1.5" href="#" wire:click.prevent="$set('showOpenShiftModal', true)">
+                  <i class="ph-duotone ph-warning me-1"></i> Open Shift
+                </a>
+              </li>
+            @endif
+            <li><hr class="dropdown-divider my-1"></li>
+            <li>
+              <a class="dropdown-item py-1.5" href="#" wire:click.prevent="openWhatsAppConnectModal">
+                <i class="bi bi-whatsapp text-success me-2"></i> WhatsApp Bridge
+              </a>
+            </li>
+            <li>
+              <a class="dropdown-item py-1.5" href="{{ route('orders.index') }}" target="_blank">
+                <i class="bi bi-arrow-counter-clockwise text-danger me-2"></i> Refunds / Invoices
+              </a>
+            </li>
+            <li>
+              <a class="dropdown-item py-1.5" href="#" onclick="PosOfflineEngine.syncNow(); return false;">
+                <i class="bi bi-cloud-arrow-up-fill text-warning me-2"></i> Offline Queue (<span id="posOfflineQueueBadgeMobile">0</span>)
+              </a>
+            </li>
+            <li><hr class="dropdown-divider my-1"></li>
+            <li>
+              <a class="dropdown-item py-1.5" href="#" onclick="toggleFullscreen(); return false;">
+                <i class="bi bi-fullscreen me-2"></i> Fullscreen
+              </a>
+            </li>
+            <li class="dropdown-item-text text-muted py-1 small">
+              <i class="bi bi-person-circle me-1"></i> {{ auth()->user()->name ?? 'Cashier' }} ({{ ucfirst(auth()->user()->role ?? 'Staff') }})
+            </li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- DESKTOP / TABLET CONTROLS (>= 768px) -->
+      <div class="d-none d-md-flex align-items-center gap-1 gap-md-2">
+        @if ($activeShift)
+          <span class="badge badge-soft-success d-none d-sm-inline-flex align-items-center gap-1 py-1 px-2 text-nowrap" style="font-size: 0.75rem;" title="Shift #{{ $activeShift->id }} Open">
+            <i class="ph-duotone ph-vault"></i> Shift #{{ $activeShift->id }}
+          </span>
+        @else
+          <button type="button" wire:click="$set('showOpenShiftModal', true)" class="btn btn-warning btn-sm py-1 px-2 d-inline-flex align-items-center gap-1 fw-bold shadow-sm text-nowrap" style="font-size: 0.75rem;" title="Open Shift to Punch Orders">
+            <i class="ph-duotone ph-warning"></i>
+            <span>Open Shift<span class="d-none d-xl-inline"> to Punch</span></span>
+          </button>
         @endif
-      </button>
 
-      <!-- Refund / Invoices Quick Link -->
-      <a href="{{ route('orders.index') }}" target="_blank" class="btn btn-outline-danger btn-sm px-2 text-nowrap" title="Refunds, Returns & Order History">
-        <i class="bi bi-arrow-counter-clockwise"></i>
-        <span class="d-none d-lg-inline ms-1">Refunds</span>
-      </a>
+        <!-- Network Status Pill (Online / Offline / Syncing) -->
+        <span id="posNetworkStatusPill" class="badge bg-success-subtle text-success border border-success-subtle d-inline-flex align-items-center gap-1 px-2 py-1 text-nowrap" style="font-size: 0.75rem;" title="POS Network Status">
+          <span class="p-1 rounded-circle bg-success"></span>
+          <span class="d-none d-md-inline">Online</span>
+        </span>
 
-      <!-- Theme Switcher -->
-      <button class="header-action theme-toggle flex-shrink-0" title="Toggle Theme">
-        <i class="bi bi-moon icon-dark"></i>
-        <i class="bi bi-sun icon-light"></i>
-      </button>
+        <!-- WhatsApp Quick Status & Connect -->
+        <button type="button" wire:click="openWhatsAppConnectModal" class="btn btn-outline-success btn-sm py-1 px-2 d-inline-flex align-items-center gap-1 text-nowrap" style="font-size: 0.75rem;" title="WhatsApp Receipt Status & Pair Device">
+          <i class="bi bi-whatsapp"></i>
+          <span class="d-none d-xl-inline">WhatsApp</span>
+        </button>
 
-      <!-- Fullscreen -->
-      <button class="header-action fullscreen-toggle flex-shrink-0" onclick="toggleFullscreen()" title="Fullscreen">
-        <i class="bi bi-fullscreen icon-enter"></i>
-        <i class="bi bi-fullscreen-exit icon-exit"></i>
-      </button>
+        <!-- Offline Sync Badge & Trigger -->
+        <button type="button" id="posOfflineSyncBtn" onclick="PosOfflineEngine.syncNow()" class="btn btn-warning btn-sm py-1 px-2 d-none align-items-center gap-1 shadow-sm fw-bold text-nowrap" style="font-size: 0.75rem;" title="Click to sync offline orders to cloud">
+          <i class="bi bi-cloud-arrow-up-fill"></i>
+          <span class="d-none d-xl-inline">Offline Queue</span>
+          <span id="posOfflineQueueBadge" class="badge bg-dark rounded-pill ms-1">0</span>
+        </button>
 
-      <!-- Active User -->
-      <div class="d-flex align-items-center gap-1.5 border-start ps-2 flex-shrink-0">
-        <img src="{{ asset('assets/img/profile-img.webp') }}" class="rounded-circle" width="30" height="30" alt="Avatar">
-        <div class="d-none d-xxl-block small text-start">
-          <div class="fw-semibold text-truncate" style="max-width: 90px;">{{ auth()->user()->name ?? 'Cashier' }}</div>
-          <div class="text-muted" style="font-size: 0.7rem; line-height: 1;">{{ ucfirst(auth()->user()->role ?? 'Staff') }}</div>
+        <!-- Open Orders Drawer Trigger -->
+        <button type="button" wire:click="$toggle('showOpenOrdersModal')" class="btn btn-outline-secondary btn-sm position-relative px-2 text-nowrap" title="Open {{ ucfirst(strtolower($orderType)) }} Orders">
+          <i class="bi bi-clock-history"></i>
+          <span class="d-none d-md-inline ms-1">
+            <span class="d-none d-xxl-inline">{{ ucfirst(strtolower($orderType)) }} </span>Orders
+          </span>
+          @if ($openCount > 0)
+            <span class="badge bg-primary ms-1 px-1.5">{{ $openCount }}</span>
+          @endif
+        </button>
+
+        <!-- Refund / Invoices Quick Link -->
+        <a href="{{ route('orders.index') }}" target="_blank" class="btn btn-outline-danger btn-sm px-2 text-nowrap" title="Refunds, Returns & Order History">
+          <i class="bi bi-arrow-counter-clockwise"></i>
+          <span class="d-none d-lg-inline ms-1">Refunds</span>
+        </a>
+
+        <!-- Theme Switcher -->
+        <button class="header-action theme-toggle flex-shrink-0" title="Toggle Theme">
+          <i class="bi bi-moon icon-dark"></i>
+          <i class="bi bi-sun icon-light"></i>
+        </button>
+
+        <!-- Fullscreen -->
+        <button class="header-action fullscreen-toggle flex-shrink-0" onclick="toggleFullscreen()" title="Fullscreen">
+          <i class="bi bi-fullscreen icon-enter"></i>
+          <i class="bi bi-fullscreen-exit icon-exit"></i>
+        </button>
+
+        <!-- Active User -->
+        <div class="d-flex align-items-center gap-1.5 border-start ps-2 flex-shrink-0">
+          <img src="{{ asset('assets/img/profile-img.webp') }}" class="rounded-circle" width="30" height="30" alt="Avatar">
+          <div class="d-none d-xxl-block small text-start">
+            <div class="fw-semibold text-truncate" style="max-width: 90px;">{{ auth()->user()->name ?? 'Cashier' }}</div>
+            <div class="text-muted" style="font-size: 0.7rem; line-height: 1;">{{ ucfirst(auth()->user()->role ?? 'Staff') }}</div>
+          </div>
         </div>
       </div>
     </div>
@@ -125,7 +198,9 @@
   <!-- Main POS Grid Container -->
   <div class="pos-container">
     <!-- LEFT PANEL: Catalog & Search (60%) -->
-    <div class="col-12 col-lg-6 col-xl-7 p-3 d-flex flex-column h-100 overflow-hidden border-end" style="background: var(--background-color);">
+    <div class="col-12 col-lg-6 col-xl-7 p-3 flex-column h-100 overflow-hidden border-end pos-catalog-panel"
+         :class="mobileTab === 'menu' ? 'd-flex' : 'd-none d-md-flex'"
+         style="background: var(--background-color);">
       <!-- Top Filters: Search & Barcode -->
       <div class="d-flex flex-wrap align-items-center gap-2 mb-3">
         <div class="input-group input-group-sm flex-grow-1" style="max-width: 400px;">
@@ -215,7 +290,7 @@
         </div>
       @else
         <!-- Products Grid Scroll Area (Categorized Sections) -->
-        <div class="overflow-y-auto flex-grow-1 pe-1">
+        <div class="overflow-y-auto flex-grow-1 pe-1 {{ !empty($cart) ? 'pos-products-scroll-mobile' : '' }}">
           @php
             $groupedProducts = $products->groupBy(function($item) {
               return $item->category?->name ?? 'General Menu';
@@ -298,14 +373,32 @@
           @endforelse
         </div>
       @endif
+
+      <!-- Mobile Floating Cart Bar -->
+      @if (!empty($cart))
+        <div class="pos-mobile-cart-bar d-md-none">
+          <button type="button" @click="mobileTab = 'cart'" class="btn btn-primary w-100 py-2 px-3 d-flex align-items-center justify-content-between shadow-sm fw-bold rounded-3">
+            <span class="d-flex align-items-center gap-2">
+              <i class="ph-duotone ph-shopping-cart fs-5"></i>
+              <span>View Cart ({{ count($cart) }} {{ \Illuminate\Support\Str::plural('item', count($cart)) }})</span>
+            </span>
+            <span>Rs. {{ number_format($grandTotal) }} &rarr;</span>
+          </button>
+        </div>
+      @endif
     </div>
 
     <!-- RIGHT PANEL: Order Cart & Checkout (40%) -->
-    <div class="col-12 col-lg-6 col-xl-5 p-0 d-flex flex-column h-100 bg-surface">
+    <div class="col-12 col-lg-6 col-xl-5 p-0 flex-column h-100 bg-surface pos-cart-panel"
+         :class="mobileTab === 'cart' ? 'd-flex' : 'd-none d-md-flex'">
       <!-- Order Header -->
       <div class="px-3 py-2 border-bottom d-flex align-items-center justify-content-between pos-cart-header">
         <div>
           <div class="d-flex align-items-center gap-2">
+            <!-- Mobile Back to Menu Button -->
+            <button type="button" @click="mobileTab = 'menu'" class="btn btn-outline-primary btn-sm py-0.5 px-2 d-md-none" title="Back to Menu">
+              <i class="bi bi-arrow-left me-1"></i> Menu
+            </button>
             <span class="badge bg-dark">{{ $orderType }}</span>
             <span class="fw-bold fs-6 text-heading">{{ $orderNumber }}</span>
           </div>
@@ -470,7 +563,7 @@
                 <div class="d-flex align-items-center justify-content-between gap-1.5">
                   <!-- Stepper & Item Info -->
                   <div class="d-flex align-items-center gap-2 flex-grow-1 min-w-0">
-                    <div class="input-group input-group-sm flex-shrink-0" style="width: 76px; height: 26px;">
+                    <div class="input-group input-group-sm flex-shrink-0 pos-cart-stepper" style="width: 76px; height: 26px;">
                       <button type="button" wire:click="updateQty({{ $index }}, -1)" class="btn btn-outline-secondary px-1.5 py-0" style="font-size: 0.75rem; line-height: 1;">-</button>
                       <input type="text" wire:change="setQty({{ $index }}, $event.target.value)" value="{{ $item['qty'] }}" class="form-control text-center p-0 fw-bold" style="font-size: 0.78rem;">
                       <button type="button" wire:click="updateQty({{ $index }}, 1)" class="btn btn-outline-secondary px-1.5 py-0" style="font-size: 0.75rem; line-height: 1;">+</button>
@@ -625,7 +718,7 @@
   <!-- CHECKOUT MODAL -->
   @if ($showCheckoutModal)
     <div class="modal fade show d-block" tabindex="-1" style="background: rgba(0,0,0,0.6);" aria-modal="true" role="dialog" wire:click.self="closeCheckout">
-      <div class="modal-dialog modal-dialog-centered modal-lg">
+      <div class="modal-dialog modal-dialog-centered modal-lg modal-dialog-scrollable">
         <div class="modal-content border">
           <div class="modal-header">
             <h5 class="modal-title fw-bold">

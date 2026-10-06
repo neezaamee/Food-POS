@@ -139,6 +139,10 @@
                 badge.innerText = count;
                 badge.style.display = count > 0 ? 'inline-block' : 'none';
             }
+            const badgeMobile = document.getElementById('posOfflineQueueBadgeMobile');
+            if (badgeMobile) {
+                badgeMobile.innerText = count;
+            }
             if (btn) {
                 btn.style.display = count > 0 ? 'inline-flex' : 'none';
             }

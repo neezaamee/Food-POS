@@ -15,7 +15,12 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const PORT = process.env.PORT || 3333;
-const AUTH_DIR = path.resolve(__dirname, '../storage/app/whatsapp-auth');
+const HOST = process.env.HOST || '0.0.0.0';
+const AUTH_DIR = process.env.AUTH_DIR || (
+  fs.existsSync(path.resolve(__dirname, '../storage/app'))
+    ? path.resolve(__dirname, '../storage/app/whatsapp-auth')
+    : path.resolve(__dirname, './auth')
+);
 
 // Ensure auth directory exists
 if (!fs.existsSync(AUTH_DIR)) {
@@ -212,8 +217,8 @@ app.post('/api/send', async (req, res) => {
   }
 });
 
-app.listen(PORT, '127.0.0.1', () => {
-  console.log(`[WhatsApp Bridge] Running on http://127.0.0.1:${PORT}`);
+app.listen(PORT, HOST, () => {
+  console.log(`[WhatsApp Bridge] Running on http://${HOST}:${PORT}`);
   // Attempt auto-connect on start
   connectToWhatsApp();
 });

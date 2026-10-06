@@ -30,8 +30,9 @@
     <div class="auth-container">
       <!-- Logo -->
       <a href="{{ url('/') }}" class="auth-logo">
-        <img src="{{ \App\Models\SystemSetting::logoUrl() }}" alt="{{ \App\Models\SystemSetting::get('restaurant_name', 'Food Point') }}" style="max-height: 48px; width: auto; object-fit: contain;">
-        <span>{{ \App\Models\SystemSetting::get('restaurant_name', 'Food Point POS') }}</span>
+        {{--<img src="{{ \App\Models\SystemSetting::logoUrl() }}" alt="{{ \App\Models\SystemSetting::get('restaurant_name', 'Food Point') }}" style="max-height: 48px; width: auto; object-fit: contain;">--}}
+        {{-- <span>{{ \App\Models\SystemSetting::get('restaurant_name', 'Food Point POS') }}</span> --}}
+         <span>Elaf Tech - Food Point POS</span>
       </a>
 
       @yield('content')
