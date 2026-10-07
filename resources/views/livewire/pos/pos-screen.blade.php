@@ -243,16 +243,16 @@
       </div>
 
       <!-- Categories Pills Scroll Bar -->
-      <div class="d-flex gap-2 overflow-x-auto pb-2 mb-3 no-scrollbar" style="white-space: nowrap;">
+      <div class="d-flex align-items-center gap-2 overflow-x-auto pb-2 mb-3 flex-nowrap flex-shrink-0 pos-category-scroll" style="white-space: nowrap; -webkit-overflow-scrolling: touch; scrollbar-width: thin;">
         <button type="button" 
           wire:click="selectCategory(null)" 
-          class="btn btn-sm {{ is_null($selectedCategoryId) ? 'btn-primary' : 'btn-outline-secondary' }} rounded-pill px-3">
+          class="btn btn-sm flex-shrink-0 {{ is_null($selectedCategoryId) ? 'btn-primary' : 'btn-outline-secondary' }} rounded-pill px-3">
           All Menu
         </button>
         @foreach ($categories as $cat)
           <button type="button" 
             wire:click="selectCategory({{ $cat->id }})" 
-            class="btn btn-sm {{ $selectedCategoryId === $cat->id ? 'btn-primary' : 'btn-outline-secondary' }} rounded-pill px-3">
+            class="btn btn-sm flex-shrink-0 {{ $selectedCategoryId === $cat->id ? 'btn-primary' : 'btn-outline-secondary' }} rounded-pill px-3">
             {{ $cat->name }}
           </button>
         @endforeach

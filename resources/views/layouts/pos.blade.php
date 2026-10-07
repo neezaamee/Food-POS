@@ -85,6 +85,21 @@
       background: #94a3b8;
     }
 
+    /* Custom slim scrollbar for categories pills */
+    .pos-category-scroll::-webkit-scrollbar {
+      height: 4px;
+    }
+    .pos-category-scroll::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    .pos-category-scroll::-webkit-scrollbar-thumb {
+      background: #cbd5e1;
+      border-radius: 4px;
+    }
+    .pos-category-scroll::-webkit-scrollbar-thumb:hover {
+      background: #94a3b8;
+    }
+
     /* 14-inch / Compact Screen Optimizations (viewport height <= 820px or width <= 1400px) */
     @media (max-height: 820px) {
       .pos-navbar {
